@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace acheteur - Mercato Nova Prestige</title>
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/espace_acheteur.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+    <header class="en-tete">
+        <div class="logo">Mercato Nova <span>Prestige</span></div>
+
+        <nav class="navigation">
+            <a href="index.html">Accueil</a>
+            <a href="catalogue.html">Catalogue</a>
+            <a href="panier.html">Panier</a>
+            <a href="../backend/deconnexion.php" class="lien-connexion">Déconnexion</a>
+        </nav>
+    </header>
+
+    <section class="zone-negociations-acheteur">
+    <div class="haut-section">
+        <div>
+            <p class="petit-titre">mes négociations</p>
+            <h2>Suivi de mes offres</h2>
+        </div>
+
+        <p id="nombreNegociationsAcheteur">chargement...</p>
+    </div>
+
+    <div class="liste-negociations-acheteur" id="listeNegociationsAcheteur">
+        <!-- negociations acheteur avec javascript -->
+    </div>
+    </section>
+
+    <section class="zone-notifications-acheteur">
+        <div class="haut-section">
+            <div>
+                <p class="petit-titre">notifications</p>
+                <h2>Dernières informations</h2>
+            </div>
+        </div>
+
+        <div class="liste-notifications-acheteur" id="listeNotificationsAcheteur">
+            <!-- notifications acheteur avec javascript -->
+        </div>
+    </section>
+
+    <main class="page-acheteur">
+
+        <section class="haut-dashboard">
+            <div>
+                <p class="petit-titre">espace acheteur</p>
+                <h1 id="messageBienvenue">Bienvenue</h1>
+                <p class="texte-dashboard">
+                    Retrouvez vos véhicules, votre panier, vos enchères et vos négociations en cours.
+                </p>
+            </div>
+
+            <div class="carte-profil" id="carteProfil">
+                <!-- infos utilisateur avec javascript -->
+            </div>
+        </section>
+
+        <section class="grille-dashboard">
+
+            <article class="carte-dashboard">
+                <span class="numero-dashboard">01</span>
+                <h2>Mon panier</h2>
+                <p>Consultez les véhicules ajoutés avant validation de la commande.</p>
+                <a href="panier.html">Voir mon panier</a>
+            </article>
+
+            <article class="carte-dashboard">
+                <span class="numero-dashboard">02</span>
+                <h2>Mes enchères</h2>
+                <p>Suivez vos offres envoyées sur les ventes aux enchères.</p>
+                <a href="catalogue.html">Voir les enchères</a>
+            </article>
+
+            <article class="carte-dashboard">
+                <span class="numero-dashboard">03</span>
+                <h2>Mes négociations</h2>
+                <p>Retrouvez les offres envoyées aux vendeurs et leur statut.</p>
+                <a href="catalogue.html">Voir les véhicules</a>
+            </article>
+
+            <article class="carte-dashboard">
+                <span class="numero-dashboard">04</span>
+                <h2>Notifications</h2>
+                <p>Consultez les informations importantes liées à vos actions.</p>
+                <a href="#" id="lienNotifications">Voir les notifications</a>
+            </article>
+
+        </section>
+
+        <section class="bloc-activite">
+            <div class="haut-section">
+                <div>
+                    <p class="petit-titre">activité récente</p>
+                    <h2>Résumé du compte</h2>
+                </div>
+            </div>
+
+            <div class="liste-activite">
+                <div>
+                    <strong>Panier actif</strong>
+                    <p>Vos véhicules ajoutés au panier apparaîtront ici.</p>
+                </div>
+
+                <div>
+                    <strong>Enchères suivies</strong>
+                    <p>Les offres envoyées seront reliées à votre compte acheteur.</p>
+                </div>
+
+                <div>
+                    <strong>Négociations</strong>
+                    <p>Vous pourrez proposer un prix sur les véhicules négociables.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="pied-page">
+        <p>© 2026 Mercato Nova Prestige</p>
+        <p>Espace acheteur connecté à la session PHP</p>
+    </footer>
+
+    <script src="js/espace_acheteur.js"></script>
+</body>
+</html>
