@@ -1,1 +1,113 @@
+<?php
+session_start();
 
+require_once "connexion_bdd.php";
+
+// il faut etre connecte
+if (!isset($_SESSION["id_utilisateur"])) {
+    header("Location: ../frontend/connexion.html");
+    exit;
+}
+
+// seuls les acheteurs peuvent acheter
+if ($_SESSION["role"] !== "acheteur") {
+    die("seuls les acheteurs peuvent ajouter une voiture au panier");
+}
+
+// on verifie l'id voiture
+if (!isset($_GET["id"])) {
+    die("id voiture manquant");
+}
+
+$id_utilisateur = $_SESSION["id_utilisateur"];
+$id_voiture = intval($_GET["id"]);
+
+// on recupere la voiture
+$requete_voiture = "
+    SELECT id_voiture, prix, mode_vente, statut_annonce
+    FROM VOITURE
+    WHERE id_voiture = ?
+    LIMIT 1
+";
+
+$preparation_voiture = mysqli_prepare($connexion, $requete_voiture);
+mysqli_stmt_bind_param($preparation_voiture, "i", $id_voiture);
+mysqli_stmt_execute($preparation_voiture);
+$resultat_voiture = mysqli_stmt_get_result($preparation_voiture);
+
+if (mysqli_num_rows($resultat_voiture) === 0) {
+    die("voiture introuvable");
+}
+
+$voiture = mysqli_fetch_assoc($resultat_voiture);
+
+// on bloque si la voiture n'est pas achetable
+if ($voiture["mode_vente"] !== "achat_immediat" || $voiture["statut_annonce"] !== "validee") {
+    die("cette voiture ne peut pas etre achetee directement");
+}
+
+// on cherche si l'utilisateur a deja un panier
+$requete_panier = "
+    SELECT id_panier
+    FROM PANIER
+    WHERE id_utilisateur = ?
+    LIMIT 1
+";
+
+$preparation_panier = mysqli_prepare($connexion, $requete_panier);
+mysqli_stmt_bind_param($preparation_panier, "i", $id_utilisateur);
+mysqli_stmt_execute($preparation_panier);
+$resultat_panier = mysqli_stmt_get_result($preparation_panier);
+
+// si aucun panier, on le cree
+if (mysqli_num_rows($resultat_panier) === 0) {
+    $requete_creation = "
+        INSERT INTO PANIER (id_utilisateur)
+        VALUES (?)
+    ";
+
+    $preparation_creation = mysqli_prepare($connexion, $requete_creation);
+    mysqli_stmt_bind_param($preparation_creation, "i", $id_utilisateur);
+    mysqli_stmt_execute($preparation_creation);
+
+    $id_panier = mysqli_insert_id($connexion);
+} else {
+    $panier = mysqli_fetch_assoc($resultat_panier);
+    $id_panier = $panier["id_panier"];
+}
+
+// on verifie si la voiture est deja dans le panier
+$requete_ligne = "
+    SELECT id_ligne_panier
+    FROM LIGNE_PANIER
+    WHERE id_panier = ?
+    AND id_voiture = ?
+    LIMIT 1
+";
+
+$preparation_ligne = mysqli_prepare($connexion, $requete_ligne);
+mysqli_stmt_bind_param($preparation_ligne, "ii", $id_panier, $id_voiture);
+mysqli_stmt_execute($preparation_ligne);
+$resultat_ligne = mysqli_stmt_get_result($preparation_ligne);
+
+if (mysqli_num_rows($resultat_ligne) > 0) {
+    header("Location: ../frontend/panier.html");
+    exit;
+}
+
+// on ajoute la ligne panier
+$prix_final = $voiture["prix"];
+
+$requete_ajout = "
+    INSERT INTO LIGNE_PANIER (prix_final, id_panier, id_voiture)
+    VALUES (?, ?, ?)
+";
+
+$preparation_ajout = mysqli_prepare($connexion, $requete_ajout);
+mysqli_stmt_bind_param($preparation_ajout, "dii", $prix_final, $id_panier, $id_voiture);
+mysqli_stmt_execute($preparation_ajout);
+
+// retour au panier
+header("Location: ../frontend/panier.html");
+exit;
+?>
