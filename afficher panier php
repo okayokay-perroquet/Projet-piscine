@@ -1,0 +1,62 @@
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+// on verifie la connexion
+if (!isset($_SESSION["id_utilisateur"])) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "utilisateur non connecte"
+    ]);
+    exit;
+}
+
+$id_utilisateur = $_SESSION["id_utilisateur"];
+
+// on recupere le panier de l'utilisateur
+$requete = "
+    SELECT 
+        lp.id_ligne_panier,
+        lp.prix_final,
+        p.id_panier,
+        v.id_voiture,
+        v.modele,
+        v.annee,
+        v.kilometrage,
+        v.puissance,
+        v.mode_vente,
+        v.statut_annonce,
+        m.nom_marque,
+        i.url_image
+    FROM PANIER p
+    INNER JOIN LIGNE_PANIER lp ON p.id_panier = lp.id_panier
+    INNER JOIN VOITURE v ON lp.id_voiture = v.id_voiture
+    INNER JOIN MARQUE m ON v.id_marque = m.id_marque
+    LEFT JOIN IMAGE_VOITURE i ON v.id_voiture = i.id_voiture AND i.image_principale = 1
+    WHERE p.id_utilisateur = ?
+    ORDER BY lp.id_ligne_panier DESC
+";
+
+$preparation = mysqli_prepare($connexion, $requete);
+mysqli_stmt_bind_param($preparation, "i", $id_utilisateur);
+mysqli_stmt_execute($preparation);
+
+$resultat = mysqli_stmt_get_result($preparation);
+
+$lignes = [];
+$total = 0;
+
+while ($ligne = mysqli_fetch_assoc($resultat)) {
+    $lignes[] = $ligne;
+    $total += floatval($ligne["prix_final"]);
+}
+
+echo json_encode([
+    "succes" => true,
+    "lignes" => $lignes,
+    "total" => $total
+]);
+?>
