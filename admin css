@@ -1,1 +1,702 @@
+/* page admin */
+.page-admin {
+    min-height: 100vh;
+    padding: 140px 7% 90px;
+    background:
+        radial-gradient(circle at top right, rgba(201, 164, 92, 0.12), transparent 32%),
+        #08090b;
+}
 
+/* haut admin */
+.haut-admin {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+    align-items: stretch;
+    margin-bottom: 48px;
+}
+
+.haut-admin h1 {
+    font-size: 52px;
+    line-height: 1.05;
+    margin-bottom: 18px;
+}
+
+.haut-admin p {
+    color: #a7aab3;
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 780px;
+}
+
+/* carte profil admin */
+.carte-admin {
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(201, 164, 92, 0.28);
+    border-radius: 24px;
+    padding: 26px;
+    box-shadow: 0 22px 50px rgba(0, 0, 0, 0.25);
+}
+
+.carte-admin h2 {
+    font-size: 24px;
+    margin-bottom: 18px;
+}
+
+.carte-admin p {
+    color: #a7aab3;
+    margin-bottom: 10px;
+}
+
+.carte-admin strong {
+    color: #c9a45c;
+}
+
+/* bloc annonces */
+.bloc-annonces {
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.22);
+    border-radius: 26px;
+    padding: 32px;
+}
+
+#nombreAnnonces {
+    color: #a7aab3;
+}
+
+/* filtres admin */
+.barre-filtre-admin {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+
+.filtre-admin {
+    background: #08090b;
+    color: #a7aab3;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    padding: 10px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.filtre-admin:hover,
+.filtre-admin.actif {
+    background: rgba(201, 164, 92, 0.15);
+    color: #c9a45c;
+    border-color: rgba(201, 164, 92, 0.45);
+}
+
+/* liste annonces */
+.liste-annonces-admin {
+    display: grid;
+    gap: 24px;
+}
+
+/* carte annonce admin */
+.carte-annonce-admin {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+.carte-annonce-admin img {
+    width: 100%;
+    height: 100%;
+    min-height: 240px;
+    object-fit: cover;
+    display: block;
+}
+
+.contenu-annonce-admin {
+    padding: 24px;
+}
+
+.ligne-haut-admin {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+    color: #a7aab3;
+}
+
+.badge-statut-admin {
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.statut-validee {
+    background: rgba(54, 179, 126, 0.14);
+    color: #58d68d;
+}
+
+.statut-refusee {
+    background: rgba(255, 80, 80, 0.14);
+    color: #ff7676;
+}
+
+.statut-attente {
+    background: rgba(201, 164, 92, 0.14);
+    color: #c9a45c;
+}
+
+.contenu-annonce-admin h3 {
+    font-size: 26px;
+    margin-bottom: 8px;
+}
+
+.contenu-annonce-admin p {
+    color: #a7aab3;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.details-annonce-admin {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.details-annonce-admin div {
+    background: #08090b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.details-annonce-admin span {
+    display: block;
+    color: #777b85;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.details-annonce-admin strong {
+    color: #f5f3ef;
+}
+
+/* boutons admin */
+.actions-admin {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.bouton-valider,
+.bouton-refuser,
+.bouton-supprimer {
+    padding: 13px 20px;
+    border-radius: 999px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.bouton-valider {
+    background: #c9a45c;
+    color: #08090b;
+    border: none;
+}
+
+.bouton-valider:hover {
+    background: #e0bd70;
+}
+
+.bouton-refuser {
+    background: transparent;
+    color: #ffb86b;
+    border: 1px solid rgba(255, 184, 107, 0.45);
+}
+
+.bouton-refuser:hover {
+    background: rgba(255, 184, 107, 0.10);
+}
+
+.bouton-supprimer {
+    background: transparent;
+    color: #ff7676;
+    border: 1px solid rgba(255, 118, 118, 0.45);
+}
+
+.bouton-supprimer:hover {
+    background: rgba(255, 118, 118, 0.10);
+}
+
+/* message vide */
+.message-vide-admin {
+    color: #a7aab3;
+    background: #08090b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 24px;
+}
+
+/* responsive */
+@media screen and (max-width: 1050px) {
+    .haut-admin {
+        grid-template-columns: 1fr;
+    }
+
+    .carte-annonce-admin {
+        grid-template-columns: 1fr;
+    }
+
+    .carte-annonce-admin img {
+        height: 280px;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    .haut-admin h1 {
+        font-size: 38px;
+    }
+
+    .details-annonce-admin {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* encheres admin */
+.zone-encheres-admin {
+    margin-top: 60px;
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.22);
+    border-radius: 26px;
+    padding: 32px;
+}
+
+#nombreEncheresAdmin {
+    color: #a7aab3;
+}
+
+.liste-encheres-admin {
+    display: grid;
+    gap: 22px;
+}
+
+.carte-enchere-admin {
+    display: grid;
+    grid-template-columns: 230px 1fr;
+    gap: 24px;
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    overflow: hidden;
+}
+
+.carte-enchere-admin img {
+    width: 100%;
+    height: 100%;
+    min-height: 210px;
+    object-fit: cover;
+}
+
+.carte-enchere-admin div {
+    padding: 22px;
+}
+
+.carte-enchere-admin h3 {
+    font-size: 24px;
+    margin: 14px 0 10px;
+}
+
+.carte-enchere-admin p {
+    color: #a7aab3;
+    margin-bottom: 8px;
+}
+
+.carte-enchere-admin strong {
+    color: #f5f3ef;
+}
+
+.carte-enchere-admin button {
+    margin-top: 16px;
+    background: #c9a45c;
+    color: #08090b;
+    border: none;
+    border-radius: 999px;
+    padding: 11px 18px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* correction affichage annonces admin */
+.bloc-annonces {
+    margin-top: 60px;
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.22);
+    border-radius: 26px;
+    padding: 32px;
+}
+
+.liste-annonces-admin {
+    display: grid;
+    gap: 26px;
+}
+
+.carte-admin-annonce,
+.carte-annonce-admin {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 0;
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+.carte-admin-annonce img,
+.carte-annonce-admin img {
+    width: 100%;
+    height: 100%;
+    min-height: 330px;
+    max-height: 360px;
+    object-fit: cover;
+}
+
+.contenu-admin-annonce,
+.contenu-annonce-admin {
+    padding: 30px;
+}
+
+.ligne-haut-annonce {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.ligne-haut-annonce > span:last-child {
+    color: #a7aab3;
+    text-transform: lowercase;
+}
+
+.contenu-admin-annonce h3,
+.contenu-annonce-admin h3 {
+    font-size: 30px;
+    margin-bottom: 12px;
+}
+
+.contenu-admin-annonce > p,
+.contenu-annonce-admin > p {
+    color: #a7aab3;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.grille-infos-admin {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.grille-infos-admin div {
+    background: #08090b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.grille-infos-admin span {
+    display: block;
+    color: #777b85;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.grille-infos-admin strong {
+    color: #f5f3ef;
+    font-size: 16px;
+}
+
+.badge-statut {
+    display: inline-block;
+    padding: 8px 13px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.statut-validee {
+    background: rgba(54, 179, 126, 0.14);
+    color: #58d68d;
+}
+
+.statut-attente {
+    background: rgba(201, 164, 92, 0.14);
+    color: #c9a45c;
+}
+
+.statut-refusee {
+    background: rgba(255, 80, 80, 0.14);
+    color: #ff7676;
+}
+
+.statut-vendue {
+    background: rgba(201, 164, 92, 0.18);
+    color: #c9a45c;
+}
+
+.actions-admin {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.actions-admin button {
+    border-radius: 999px;
+    padding: 11px 18px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.bouton-valider-admin {
+    background: #c9a45c;
+    color: #08090b;
+    border: none;
+}
+
+.bouton-refuser-admin {
+    background: transparent;
+    color: #ff7676;
+    border: 1px solid rgba(255, 118, 118, 0.45);
+}
+
+.bouton-supprimer-admin {
+    background: transparent;
+    color: #ff7676;
+    border: 1px solid rgba(255, 118, 118, 0.45);
+}
+
+/* correction affichage enchères admin */
+.zone-encheres-admin {
+    margin-top: 60px;
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.22);
+    border-radius: 26px;
+    padding: 32px;
+}
+
+.liste-encheres-admin {
+    display: grid;
+    gap: 22px;
+}
+
+.carte-enchere-admin {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 0;
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+.carte-enchere-admin img {
+    width: 100%;
+    height: 100%;
+    min-height: 250px;
+    max-height: 280px;
+    object-fit: cover;
+}
+
+.carte-enchere-admin div {
+    padding: 28px;
+}
+
+.carte-enchere-admin h3 {
+    font-size: 28px;
+    margin: 14px 0 14px;
+}
+
+.carte-enchere-admin p {
+    color: #a7aab3;
+    margin-bottom: 9px;
+}
+
+.carte-enchere-admin strong {
+    color: #f5f3ef;
+}
+
+.carte-enchere-admin button {
+    margin-top: 18px;
+    background: #c9a45c;
+    color: #08090b;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* responsive admin */
+@media screen and (max-width: 900px) {
+    .carte-admin-annonce,
+    .carte-annonce-admin,
+    .carte-enchere-admin {
+        grid-template-columns: 1fr;
+    }
+
+    .carte-admin-annonce img,
+    .carte-annonce-admin img,
+    .carte-enchere-admin img {
+        height: 260px;
+        max-height: none;
+    }
+
+    .grille-infos-admin {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* gestion utilisateurs admin */
+.bloc-utilisateurs-admin {
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.22);
+    border-radius: 26px;
+    padding: 32px;
+    margin-top: 34px;
+}
+
+.liste-utilisateurs-admin {
+    display: grid;
+    gap: 18px;
+}
+
+.carte-utilisateur-admin {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: center;
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 22px;
+}
+
+.carte-utilisateur-admin.utilisateur-banni {
+    border-color: rgba(255, 118, 118, 0.38);
+    background: linear-gradient(145deg, rgba(80, 26, 34, 0.45), #0e1014);
+}
+
+.carte-utilisateur-admin h3 {
+    font-size: 24px;
+    margin: 10px 0 6px;
+}
+
+.carte-utilisateur-admin p {
+    color: #a7aab3;
+}
+
+.badge-role-admin,
+.badge-compte {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 6px 11px;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.badge-role-admin {
+    color: #c9a45c;
+    background: rgba(201, 164, 92, 0.12);
+    border: 1px solid rgba(201, 164, 92, 0.28);
+}
+
+.badge-actif {
+    margin-top: 10px;
+    color: #58d68d;
+    background: rgba(54, 179, 126, 0.12);
+    border: 1px solid rgba(54, 179, 126, 0.28);
+}
+
+.badge-banni {
+    margin-top: 10px;
+    color: #ff7676;
+    background: rgba(255, 118, 118, 0.12);
+    border: 1px solid rgba(255, 118, 118, 0.35);
+}
+
+.infos-ban-admin {
+    margin-top: 14px;
+    background: rgba(255, 118, 118, 0.08);
+    border: 1px solid rgba(255, 118, 118, 0.20);
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.infos-ban-admin p {
+    margin-bottom: 6px;
+}
+
+.actions-utilisateur-admin {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.bouton-ban-admin,
+.bouton-deban-admin {
+    border-radius: 999px;
+    padding: 11px 18px;
+    cursor: pointer;
+    font-weight: bold;
+    background: transparent;
+}
+
+.bouton-ban-admin {
+    color: #ff7676;
+    border: 1px solid rgba(255, 118, 118, 0.45);
+}
+
+.bouton-ban-admin:hover {
+    background: rgba(255, 118, 118, 0.12);
+}
+
+.bouton-deban-admin {
+    color: #58d68d;
+    border: 1px solid rgba(54, 179, 126, 0.45);
+}
+
+.bouton-deban-admin:hover {
+    background: rgba(54, 179, 126, 0.12);
+}
+
+.message-admin-vide {
+    color: #a7aab3;
+    background: #08090b;
+    border-radius: 14px;
+    padding: 20px;
+}
+
+/* correction placement gestion utilisateurs */
+.bloc-utilisateurs-admin {
+    margin-top: 0;
+    margin-bottom: 60px;
+}
+
+.bloc-utilisateurs-admin .haut-section {
+    margin-bottom: 26px;
+}
+
+#nombreUtilisateursAdmin {
+    color: #a7aab3;
+}
+
+.liste-utilisateurs-admin {
+    margin-top: 24px;
+}
