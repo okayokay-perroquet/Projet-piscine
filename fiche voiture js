@@ -1,0 +1,788 @@
+// on garde la voiture actuelle pour les actions
+let voitureActuelle = null;
+let intervalleMinuteurEnchere = null;
+
+// galerie images
+let imagesVoiture = [];
+let indexImageActuelle = 0;
+
+// on attend que la page soit chargee
+document.addEventListener("DOMContentLoaded", function() {
+    chargerVoiture();
+});
+
+// on recupere l'id dans l'url
+function recupererIdVoiture() {
+    const parametres = new URLSearchParams(window.location.search);
+    return parametres.get("id");
+}
+
+// on corrige les chemins d'images si besoin
+function corrigerCheminImage(chemin) {
+    if (!chemin || chemin.trim() === "") {
+        return "images/voitures/ferrari_488.png";
+    }
+
+    let cheminCorrige = chemin.trim();
+
+    if (cheminCorrige.startsWith("../frontend/")) {
+        cheminCorrige = cheminCorrige.replace("../frontend/", "");
+    }
+
+    if (cheminCorrige.startsWith("frontend/")) {
+        cheminCorrige = cheminCorrige.replace("frontend/", "");
+    }
+
+    if (cheminCorrige.startsWith("/frontend/")) {
+        cheminCorrige = cheminCorrige.replace("/frontend/", "");
+    }
+
+    return cheminCorrige;
+}
+
+// on charge la voiture depuis php
+function chargerVoiture() {
+    const idVoiture = recupererIdVoiture();
+    const zoneFiche = document.getElementById("zoneFicheVoiture");
+
+    if (!idVoiture) {
+        zoneFiche.innerHTML = `
+            <div class="message-fiche">
+                <h1>aucun véhicule sélectionné</h1>
+                <p>retournez au catalogue pour choisir une voiture</p>
+                <a href="catalogue.html" class="bouton bouton-principal">Retour au catalogue</a>
+            </div>
+        `;
+        return;
+    }
+
+    fetch("../backend/afficher_detail_voiture.php?id=" + idVoiture)
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.succes === true) {
+                voitureActuelle = donnees.voiture;
+
+                // compatible avec plusieurs formats possibles du backend
+                if (donnees.images) {
+                    voitureActuelle.images = donnees.images;
+                }
+
+                afficherFicheVoiture(voitureActuelle);
+
+                if (voitureActuelle.mode_vente === "enchere") {
+                    chargerEnchereVoiture(voitureActuelle.id_voiture);
+                }
+            } else {
+                afficherErreurFiche();
+            }
+        })
+        .catch(function() {
+            afficherErreurFiche();
+        });
+}
+
+// on affiche la fiche voiture
+function afficherFicheVoiture(voiture) {
+    const zoneFiche = document.getElementById("zoneFicheVoiture");
+
+    const prixFormate = Number(voiture.prix).toLocaleString("fr-FR");
+    const kilometrageFormate = Number(voiture.kilometrage).toLocaleString("fr-FR");
+
+    let classeFicheVendue = "";
+
+    if (voiture.statut_annonce === "vendue") {
+        classeFicheVendue = "fiche-vendue";
+    }
+
+    zoneFiche.innerHTML = `
+        <div class="image-fiche ${classeFicheVendue}">
+            <div class="galerie-fiche-voiture">
+                <div class="image-principale-galerie">
+                    <span class="compteur-galerie" id="compteurGalerie">1 / 1</span>
+
+                    <button class="bouton-galerie bouton-galerie-gauche" type="button" onclick="imagePrecedenteGalerie()">
+                        ‹
+                    </button>
+
+                    <img id="imagePrincipaleGalerie" src="${corrigerCheminImage(voiture.url_image)}" alt="${voiture.nom_marque} ${voiture.modele}">
+
+                    <button class="bouton-galerie bouton-galerie-droite" type="button" onclick="imageSuivanteGalerie()">
+                        ›
+                    </button>
+                </div>
+
+                <div class="zone-miniatures-galerie">
+                    <button class="bouton-scroll-miniatures" type="button" onclick="scrollerMiniaturesGauche()">
+                        ‹
+                    </button>
+
+                    <div class="liste-miniatures-galerie" id="listeMiniaturesGalerie">
+                        <!-- miniatures avec javascript -->
+                    </div>
+
+                    <button class="bouton-scroll-miniatures" type="button" onclick="scrollerMiniaturesDroite()">
+                        ›
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="contenu-fiche">
+            <p class="petit-titre">${formaterModeVente(voiture)}</p>
+
+            <h1>${voiture.nom_marque} ${voiture.modele}</h1>
+
+            <p class="description-courte">
+                ${voiture.description}
+            </p>
+
+            <div class="prix-fiche">${prixFormate} €</div>
+
+            <div class="actions-fiche">
+                ${genererBoutonAction(voiture)}
+                <a href="catalogue.html" class="bouton bouton-secondaire">Retour catalogue</a>
+            </div>
+
+            <div id="zoneEnchereFiche"></div>
+
+            <div id="zoneNegociationFiche"></div>
+
+            <div class="bloc-infos">
+                <h2>Caractéristiques</h2>
+
+                <div class="grille-infos">
+                    <div>
+                        <span>Année</span>
+                        <strong>${voiture.annee}</strong>
+                    </div>
+
+                    <div>
+                        <span>Kilométrage</span>
+                        <strong>${kilometrageFormate} km</strong>
+                    </div>
+
+                    <div>
+                        <span>Puissance</span>
+                        <strong>${voiture.puissance} ch</strong>
+                    </div>
+
+                    <div>
+                        <span>Carburant</span>
+                        <strong>${voiture.carburant}</strong>
+                    </div>
+
+                    <div>
+                        <span>Transmission</span>
+                        <strong>${voiture.transmission}</strong>
+                    </div>
+
+                    <div>
+                        <span>État</span>
+                        <strong>${voiture.etat}</strong>
+                    </div>
+
+                    <div>
+                        <span>Couleur extérieure</span>
+                        <strong>${voiture.couleur_exterieure}</strong>
+                    </div>
+
+                    <div>
+                        <span>Couleur intérieure</span>
+                        <strong>${voiture.couleur_interieure}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bloc-vendeur">
+                <h2>Vendeur</h2>
+                <p>${voiture.prenom_vendeur} ${voiture.nom_vendeur}</p>
+                <span>${voiture.email_vendeur}</span>
+            </div>
+        </div>
+    `;
+
+    initialiserGalerieVoiture(voiture);
+}
+
+// on prepare les images de la galerie
+function initialiserGalerieVoiture(voiture) {
+    imagesVoiture = [];
+
+    if (voiture.images && Array.isArray(voiture.images) && voiture.images.length > 0) {
+        voiture.images.forEach(function(image) {
+            imagesVoiture.push({
+                url_image: corrigerCheminImage(image.url_image),
+                image_principale: image.image_principale
+            });
+        });
+    } else if (voiture.url_image) {
+        imagesVoiture.push({
+            url_image: corrigerCheminImage(voiture.url_image),
+            image_principale: 1
+        });
+    }
+
+    if (imagesVoiture.length === 0) {
+        imagesVoiture.push({
+            url_image: "images/voitures/ferrari_488.png",
+            image_principale: 1
+        });
+    }
+
+    const indexPrincipale = imagesVoiture.findIndex(function(image) {
+        return Number(image.image_principale) === 1;
+    });
+
+    if (indexPrincipale >= 0) {
+        indexImageActuelle = indexPrincipale;
+    } else {
+        indexImageActuelle = 0;
+    }
+
+    afficherImageGalerie();
+    afficherMiniaturesGalerie();
+    gererAffichageBoutonsGalerie();
+}
+
+// on affiche la grande image
+function afficherImageGalerie() {
+    const imagePrincipale = document.getElementById("imagePrincipaleGalerie");
+    const compteur = document.getElementById("compteurGalerie");
+
+    if (!imagePrincipale || imagesVoiture.length === 0) {
+        return;
+    }
+
+    imagePrincipale.src = imagesVoiture[indexImageActuelle].url_image;
+
+    if (voitureActuelle) {
+        imagePrincipale.alt = voitureActuelle.nom_marque + " " + voitureActuelle.modele;
+    }
+
+    if (compteur) {
+        compteur.textContent = (indexImageActuelle + 1) + " / " + imagesVoiture.length;
+    }
+
+    mettreMiniatureActive();
+}
+
+// on affiche les miniatures
+function afficherMiniaturesGalerie() {
+    const zoneMiniatures = document.getElementById("listeMiniaturesGalerie");
+
+    if (!zoneMiniatures) {
+        return;
+    }
+
+    zoneMiniatures.innerHTML = "";
+
+    imagesVoiture.forEach(function(image, index) {
+        const miniature = document.createElement("button");
+        miniature.type = "button";
+        miniature.className = "miniature-galerie";
+
+        if (index === indexImageActuelle) {
+            miniature.classList.add("active");
+        }
+
+        miniature.innerHTML = `
+            <img src="${image.url_image}" alt="image ${index + 1}">
+        `;
+
+        miniature.addEventListener("click", function() {
+            indexImageActuelle = index;
+            afficherImageGalerie();
+        });
+
+        zoneMiniatures.appendChild(miniature);
+    });
+}
+
+// active la bonne miniature
+function mettreMiniatureActive() {
+    const miniatures = document.querySelectorAll(".miniature-galerie");
+
+    miniatures.forEach(function(miniature, index) {
+        if (index === indexImageActuelle) {
+            miniature.classList.add("active");
+        } else {
+            miniature.classList.remove("active");
+        }
+    });
+}
+
+// image suivante
+function imageSuivanteGalerie() {
+    if (imagesVoiture.length <= 1) {
+        return;
+    }
+
+    indexImageActuelle++;
+
+    if (indexImageActuelle >= imagesVoiture.length) {
+        indexImageActuelle = 0;
+    }
+
+    afficherImageGalerie();
+}
+
+// image precedente
+function imagePrecedenteGalerie() {
+    if (imagesVoiture.length <= 1) {
+        return;
+    }
+
+    indexImageActuelle--;
+
+    if (indexImageActuelle < 0) {
+        indexImageActuelle = imagesVoiture.length - 1;
+    }
+
+    afficherImageGalerie();
+}
+
+// scroll miniatures gauche
+function scrollerMiniaturesGauche() {
+    const zone = document.getElementById("listeMiniaturesGalerie");
+
+    if (!zone) {
+        return;
+    }
+
+    zone.scrollBy({
+        left: -250,
+        behavior: "smooth"
+    });
+}
+
+// scroll miniatures droite
+function scrollerMiniaturesDroite() {
+    const zone = document.getElementById("listeMiniaturesGalerie");
+
+    if (!zone) {
+        return;
+    }
+
+    zone.scrollBy({
+        left: 250,
+        behavior: "smooth"
+    });
+}
+
+// cache les boutons si une seule image
+function gererAffichageBoutonsGalerie() {
+    const boutons = document.querySelectorAll(".bouton-galerie, .bouton-scroll-miniatures");
+
+    if (imagesVoiture.length <= 1) {
+        boutons.forEach(function(bouton) {
+            bouton.style.display = "none";
+        });
+    } else {
+        boutons.forEach(function(bouton) {
+            bouton.style.display = "flex";
+        });
+    }
+}
+
+// bouton selon le mode et le statut
+function genererBoutonAction(voiture) {
+    if (voiture.statut_annonce === "vendue") {
+        return `<button class="bouton bouton-vendu" disabled>Véhicule vendu</button>`;
+    }
+
+    if (voiture.mode_vente === "achat_immediat") {
+        return `<a href="../backend/ajouter_panier.php?id=${voiture.id_voiture}" class="bouton bouton-principal">Acheter maintenant</a>`;
+    }
+
+    if (voiture.mode_vente === "enchere") {
+        return `<button class="bouton bouton-principal" onclick="descendreVersEnchere()">Participer à l’enchère</button>`;
+    }
+
+    if (voiture.mode_vente === "negociation") {
+        return `<button class="bouton bouton-principal" onclick="ouvrirFormulaireNegociation()">Proposer une offre</button>`;
+    }
+
+    return `<a href="catalogue.html" class="bouton bouton-principal">Voir le catalogue</a>`;
+}
+
+// descendre vers le bloc enchere
+function descendreVersEnchere() {
+    const zone = document.getElementById("zoneEnchereFiche");
+
+    if (zone) {
+        zone.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    }
+}
+
+// on charge l'enchere de la voiture
+function chargerEnchereVoiture(idVoiture) {
+    fetch("../backend/afficher_enchere_voiture.php?id_voiture=" + idVoiture)
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.succes === true) {
+                afficherBlocEnchere(donnees.enchere, donnees.temps_restant_secondes);
+            } else {
+                afficherBlocEnchereIntrouvable();
+            }
+        })
+        .catch(function() {
+            afficherBlocEnchereIntrouvable();
+        });
+}
+
+// on affiche le bloc enchere
+function afficherBlocEnchere(enchere, tempsRestantSecondes) {
+    const zone = document.getElementById("zoneEnchereFiche");
+
+    if (!zone) {
+        return;
+    }
+
+    const prixDepart = Number(enchere.prix_depart).toLocaleString("fr-FR");
+    const prixActuel = Number(enchere.prix_actuel).toLocaleString("fr-FR");
+
+    let meilleurAcheteur = "aucune offre pour le moment";
+
+    if (enchere.prenom_meilleur && enchere.nom_meilleur) {
+        meilleurAcheteur = enchere.prenom_meilleur + " " + enchere.nom_meilleur;
+    }
+
+    let contenuAction = "";
+
+    if (voitureActuelle.statut_annonce === "vendue") {
+        contenuAction = `
+            <div class="message-enchere-terminee">
+                véhicule vendu
+            </div>
+        `;
+    } else if (enchere.statut_enchere === "active" && tempsRestantSecondes > 0) {
+        contenuAction = `
+            <div class="formulaire-enchere-fiche">
+                <label for="montantOffreEnchere">Votre offre</label>
+                <input type="number" id="montantOffreEnchere" placeholder="montant supérieur au prix actuel">
+
+                <button class="bouton bouton-principal" onclick="envoyerOffreEnchere(${enchere.id_voiture})">
+                    Envoyer mon offre
+                </button>
+            </div>
+        `;
+    } else if (enchere.statut_enchere === "terminee") {
+        contenuAction = `
+            <div class="message-enchere-terminee">
+                enchère terminée, en attente de confirmation par l’admin
+            </div>
+        `;
+    } else if (enchere.statut_enchere === "confirmee") {
+        contenuAction = `
+            <div class="message-enchere-terminee">
+                vente confirmée par l’admin
+            </div>
+        `;
+    }
+
+    zone.innerHTML = `
+        <div class="bloc-enchere-fiche">
+            <div class="haut-enchere-fiche">
+                <div>
+                    <p class="petit-titre">vente aux enchères</p>
+                    <h2>Enchère en cours</h2>
+                </div>
+
+                <span class="badge-enchere ${classeStatutEnchere(enchere.statut_enchere)}">
+                    ${formaterStatutEnchere(enchere.statut_enchere)}
+                </span>
+            </div>
+
+            <div class="grille-enchere-fiche">
+                <div>
+                    <span>Prix de départ</span>
+                    <strong>${prixDepart} €</strong>
+                </div>
+
+                <div>
+                    <span>Prix actuel</span>
+                    <strong>${prixActuel} €</strong>
+                </div>
+
+                <div>
+                    <span>Meilleur enchérisseur</span>
+                    <strong>${meilleurAcheteur}</strong>
+                </div>
+
+                <div>
+                    <span>Temps restant</span>
+                    <strong id="minuteurEnchere">chargement...</strong>
+                </div>
+            </div>
+
+            ${contenuAction}
+
+            <p class="info-enchere">
+                Si une offre est envoyée alors qu’il reste moins d’une minute, le compteur est automatiquement remis à 1 minute.
+            </p>
+
+            <div id="messageEnchere"></div>
+        </div>
+    `;
+
+    lancerMinuteurEnchere(tempsRestantSecondes, enchere.id_voiture);
+}
+
+// on lance le minuteur
+function lancerMinuteurEnchere(tempsRestantSecondes, idVoiture) {
+    const zoneMinuteur = document.getElementById("minuteurEnchere");
+
+    if (!zoneMinuteur) {
+        return;
+    }
+
+    if (intervalleMinuteurEnchere !== null) {
+        clearInterval(intervalleMinuteurEnchere);
+    }
+
+    let secondes = tempsRestantSecondes;
+
+    afficherTempsRestant(secondes);
+
+    intervalleMinuteurEnchere = setInterval(function() {
+        secondes--;
+
+        if (secondes <= 0) {
+            clearInterval(intervalleMinuteurEnchere);
+            intervalleMinuteurEnchere = null;
+
+            afficherTempsRestant(0);
+
+            // on recharge pour passer l'enchere en terminee cote backend
+            chargerEnchereVoiture(idVoiture);
+            return;
+        }
+
+        afficherTempsRestant(secondes);
+    }, 1000);
+}
+
+// on affiche temps propre
+function afficherTempsRestant(secondes) {
+    const zoneMinuteur = document.getElementById("minuteurEnchere");
+
+    if (!zoneMinuteur) {
+        return;
+    }
+
+    const jours = Math.floor(secondes / 86400);
+    const heures = Math.floor((secondes % 86400) / 3600);
+    const minutes = Math.floor((secondes % 3600) / 60);
+    const secondesRestantes = secondes % 60;
+
+    let texte = "";
+
+    if (jours > 0) {
+        texte += jours + "j ";
+    }
+
+    if (heures > 0 || jours > 0) {
+        texte += heures + "h ";
+    }
+
+    texte += minutes + "m " + secondesRestantes + "s";
+
+    zoneMinuteur.textContent = texte;
+}
+
+// envoyer une offre enchere
+function envoyerOffreEnchere(idVoiture) {
+    const champMontant = document.getElementById("montantOffreEnchere");
+    const zoneMessage = document.getElementById("messageEnchere");
+
+    if (!champMontant) {
+        return;
+    }
+
+    const montant = champMontant.value;
+
+    if (montant === "" || Number(montant) <= 0) {
+        alert("entrez un montant valide");
+        return;
+    }
+
+    const donnees = new FormData();
+    donnees.append("id_voiture", idVoiture);
+    donnees.append("montant_offre", montant);
+
+    fetch("../backend/proposer_enchere.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                if (zoneMessage) {
+                    zoneMessage.innerHTML = `
+                        <div class="message-enchere-ok">
+                            votre offre a bien été envoyée
+                        </div>
+                    `;
+                }
+
+                chargerEnchereVoiture(idVoiture);
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert("erreur lors de l’envoi de l’offre");
+        });
+}
+
+// si aucune enchere trouvee
+function afficherBlocEnchereIntrouvable() {
+    const zone = document.getElementById("zoneEnchereFiche");
+
+    if (!zone) {
+        return;
+    }
+
+    zone.innerHTML = `
+        <div class="bloc-enchere-fiche">
+            <h2>Enchère pas encore active</h2>
+            <p class="info-enchere">
+                L’enchère sera disponible après validation de l’annonce par l’admin.
+            </p>
+        </div>
+    `;
+}
+
+// classe statut enchere
+function classeStatutEnchere(statut) {
+    if (statut === "active") {
+        return "enchere-active";
+    }
+
+    if (statut === "terminee") {
+        return "enchere-terminee";
+    }
+
+    if (statut === "confirmee") {
+        return "enchere-confirmee";
+    }
+
+    return "enchere-terminee";
+}
+
+// texte statut enchere
+function formaterStatutEnchere(statut) {
+    if (statut === "active") {
+        return "active";
+    }
+
+    if (statut === "terminee") {
+        return "terminée";
+    }
+
+    if (statut === "confirmee") {
+        return "confirmée";
+    }
+
+    return statut;
+}
+
+// on affiche le formulaire de negociation
+function ouvrirFormulaireNegociation() {
+    const zone = document.getElementById("zoneNegociationFiche");
+
+    zone.innerHTML = `
+        <div class="formulaire-negociation-fiche">
+            <h2>Proposer une offre</h2>
+
+            <label for="prixPropose">Votre prix proposé</label>
+            <input type="number" id="prixPropose" placeholder="ex : 210000">
+
+            <label for="messageAcheteur">Message au vendeur</label>
+            <textarea id="messageAcheteur" rows="4" placeholder="expliquez rapidement votre proposition"></textarea>
+
+            <button class="bouton bouton-principal" onclick="envoyerNegociation()">
+                Envoyer l’offre
+            </button>
+        </div>
+    `;
+}
+
+// on envoie la negociation
+function envoyerNegociation() {
+    const prixPropose = document.getElementById("prixPropose").value;
+    const messageAcheteur = document.getElementById("messageAcheteur").value;
+
+    if (prixPropose === "" || Number(prixPropose) <= 0) {
+        alert("entrez un prix valide");
+        return;
+    }
+
+    const donnees = new FormData();
+    donnees.append("id_voiture", voitureActuelle.id_voiture);
+    donnees.append("prix_propose", prixPropose);
+    donnees.append("message_acheteur", messageAcheteur);
+
+    fetch("../backend/proposer_negociation.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                document.getElementById("zoneNegociationFiche").innerHTML = `
+                    <div class="message-negociation-ok">
+                        votre offre a bien été envoyée au vendeur
+                    </div>
+                `;
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert("erreur lors de l’envoi de la négociation");
+        });
+}
+
+// affichage mode vente
+function formaterModeVente(voiture) {
+    if (voiture.statut_annonce === "vendue") {
+        return "véhicule vendu";
+    }
+
+    if (voiture.mode_vente === "achat_immediat") {
+        return "achat immédiat";
+    }
+
+    if (voiture.mode_vente === "enchere") {
+        return "vente aux enchères";
+    }
+
+    if (voiture.mode_vente === "negociation") {
+        return "prix négociable";
+    }
+
+    return voiture.mode_vente;
+}
+
+// message si probleme
+function afficherErreurFiche() {
+    document.getElementById("zoneFicheVoiture").innerHTML = `
+        <div class="message-fiche">
+            <h1>véhicule introuvable</h1>
+            <p>la voiture demandée n’existe pas ou n’est plus disponible</p>
+            <a href="catalogue.html" class="bouton bouton-principal">Retour au catalogue</a>
+        </div>
+    `;
+}
