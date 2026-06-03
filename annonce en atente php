@@ -1,0 +1,77 @@
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+// on indique que la reponse sera en json
+header("Content-Type: application/json; charset=utf-8");
+
+// on verifie que l'utilisateur est connecte
+if (!isset($_SESSION["id_utilisateur"])) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "utilisateur non connecte"
+    ]);
+    exit;
+}
+
+// on verifie que l'utilisateur est admin
+if ($_SESSION["role"] !== "admin") {
+    echo json_encode([
+        "succes" => false,
+        "message" => "acces refuse"
+    ]);
+    exit;
+}
+
+// on recupere les annonces en attente
+$requete = "
+    SELECT 
+        v.id_voiture,
+        v.modele,
+        v.annee,
+        v.kilometrage,
+        v.puissance,
+        v.carburant,
+        v.transmission,
+        v.couleur_exterieure,
+        v.couleur_interieure,
+        v.etat,
+        v.prix,
+        v.description,
+        v.mode_vente,
+        v.statut_annonce,
+        m.nom_marque,
+        i.url_image,
+        u.nom AS nom_vendeur,
+        u.prenom AS prenom_vendeur,
+        u.id_utilisateur AS id_vendeur
+    FROM VOITURE v
+    INNER JOIN MARQUE m ON v.id_marque = m.id_marque
+    INNER JOIN UTILISATEUR u ON v.id_vendeur = u.id_utilisateur
+    LEFT JOIN IMAGE_VOITURE i ON v.id_voiture = i.id_voiture AND i.image_principale = 1
+    WHERE v.statut_annonce = 'en_attente'
+    ORDER BY v.date_publication DESC
+";
+
+$resultat = mysqli_query($connexion, $requete);
+
+if (!$resultat) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur sql"
+    ]);
+    exit;
+}
+
+$annonces = [];
+
+while ($ligne = mysqli_fetch_assoc($resultat)) {
+    $annonces[] = $ligne;
+}
+
+echo json_encode([
+    "succes" => true,
+    "annonces" => $annonces
+]);
+?>
