@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiche voiture - Mercato Nova Prestige</title>
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/fiche_voiture.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+    <header class="en-tete">
+        <div class="logo">Mercato Nova <span>Prestige</span></div>
+
+        <nav class="navigation">
+            <a href="index.html">Accueil</a>
+            <a href="catalogue.html">Catalogue</a>
+            <a href="espace_vendeur.html">Vendre</a>
+            <a href="connexion.html" class="lien-connexion">Connexion</a>
+        </nav>
+    </header>
+
+    <main class="page-fiche">
+
+        <section class="fiche-voiture" id="zoneFicheVoiture">
+            <div class="message-fiche">
+                <h1>Chargement du véhicule...</h1>
+                <p>Veuillez patienter pendant la récupération des informations.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="pied-page">
+        <p>© 2026 Mercato Nova Prestige</p>
+        <p>Fiche véhicule connectée à MySQL</p>
+    </footer>
+
+    <script src="js/fiche_voiture.js"></script>
+</body>
+</html>
