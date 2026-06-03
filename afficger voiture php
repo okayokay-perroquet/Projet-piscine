@@ -1,0 +1,56 @@
+<?php
+require_once "connexion_bdd.php";
+
+// on dit au navigateur que la reponse est en json
+header("Content-Type: application/json; charset=utf-8");
+
+// requete pour recuperer les voitures validees et vendues
+$requete = "
+    SELECT 
+        v.id_voiture,
+        v.modele,
+        v.annee,
+        v.kilometrage,
+        v.puissance,
+        v.carburant,
+        v.transmission,
+        v.couleur_exterieure,
+        v.couleur_interieure,
+        v.etat,
+        v.prix,
+        v.description,
+        v.mode_vente,
+        v.statut_annonce,
+        m.nom_marque,
+        i.url_image
+    FROM VOITURE v
+    INNER JOIN MARQUE m ON v.id_marque = m.id_marque
+    LEFT JOIN IMAGE_VOITURE i ON v.id_voiture = i.id_voiture AND i.image_principale = 1
+    WHERE v.statut_annonce IN ('validee', 'vendue')
+    ORDER BY v.date_publication DESC
+";
+
+$resultat = mysqli_query($connexion, $requete);
+
+// si la requete echoue
+if (!$resultat) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur lors de la recuperation des voitures"
+    ]);
+    exit;
+}
+
+// tableau qui va contenir les voitures
+$voitures = [];
+
+while ($ligne = mysqli_fetch_assoc($resultat)) {
+    $voitures[] = $ligne;
+}
+
+// on renvoie les voitures au format json
+echo json_encode([
+    "succes" => true,
+    "voitures" => $voitures
+]);
+?>
