@@ -1,1 +1,73 @@
 
+
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+// on verifie la connexion
+if (!isset($_SESSION["id_utilisateur"])) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "utilisateur non connecte"
+    ]);
+    exit;
+}
+
+// seul vendeur
+if ($_SESSION["role"] !== "vendeur") {
+    echo json_encode([
+        "succes" => false,
+        "message" => "acces refuse"
+    ]);
+    exit;
+}
+
+$id_vendeur = $_SESSION["id_utilisateur"];
+
+// on recupere les negociations recues
+$requete = "
+    SELECT 
+        n.id_negociation,
+        n.prix_propose,
+        n.message_acheteur,
+        n.reponse_vendeur,
+        n.statut_negociation,
+        n.date_negociation,
+        n.date_reponse,
+        v.id_voiture,
+        v.modele,
+        v.prix,
+        m.nom_marque,
+        i.url_image,
+        u.nom AS nom_acheteur,
+        u.prenom AS prenom_acheteur,
+        u.email AS email_acheteur
+    FROM NEGOCIATION n
+    INNER JOIN VOITURE v ON n.id_voiture = v.id_voiture
+    INNER JOIN MARQUE m ON v.id_marque = m.id_marque
+    INNER JOIN UTILISATEUR u ON n.id_acheteur = u.id_utilisateur
+    LEFT JOIN IMAGE_VOITURE i ON v.id_voiture = i.id_voiture AND i.image_principale = 1
+    WHERE n.id_vendeur = ?
+    ORDER BY n.date_negociation DESC
+";
+
+$preparation = mysqli_prepare($connexion, $requete);
+mysqli_stmt_bind_param($preparation, "i", $id_vendeur);
+mysqli_stmt_execute($preparation);
+
+$resultat = mysqli_stmt_get_result($preparation);
+
+$negociations = [];
+
+while ($ligne = mysqli_fetch_assoc($resultat)) {
+    $negociations[] = $ligne;
+}
+
+echo json_encode([
+    "succes" => true,
+    "negociations" => $negociations
+]);
+?>
