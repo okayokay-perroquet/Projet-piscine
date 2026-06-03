@@ -1,0 +1,269 @@
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+$transaction_lancee = false;
+
+try {
+    // on verifie la connexion
+    if (!isset($_SESSION["id_utilisateur"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "utilisateur non connecte"
+        ]);
+        exit;
+    }
+
+    // seul un acheteur peut encherir
+    if ($_SESSION["role"] !== "acheteur") {
+        echo json_encode([
+            "succes" => false,
+            "message" => "seuls les acheteurs peuvent encherir"
+        ]);
+        exit;
+    }
+
+    // on verifie les donnees
+    if (!isset($_POST["id_voiture"]) || !isset($_POST["montant_offre"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "donnees manquantes"
+        ]);
+        exit;
+    }
+
+    $id_acheteur = intval($_SESSION["id_utilisateur"]);
+    $id_voiture = intval($_POST["id_voiture"]);
+    $montant_offre = floatval($_POST["montant_offre"]);
+
+    if ($montant_offre <= 0) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "montant invalide"
+        ]);
+        exit;
+    }
+
+    // on demarre une transaction pour eviter deux offres en meme temps
+    mysqli_begin_transaction($connexion);
+    $transaction_lancee = true;
+
+    // on recupere l'enchere avec un temps calcule par mysql
+    $requete_enchere = "
+        SELECT 
+            e.id_enchere,
+            e.prix_actuel,
+            e.date_fin,
+            e.statut_enchere,
+            e.id_meilleur_acheteur,
+            TIMESTAMPDIFF(SECOND, NOW(), e.date_fin) AS secondes_restantes,
+            v.id_vendeur,
+            v.modele,
+            v.statut_annonce,
+            m.nom_marque
+        FROM ENCHERE e
+        INNER JOIN VOITURE v ON e.id_voiture = v.id_voiture
+        INNER JOIN MARQUE m ON v.id_marque = m.id_marque
+        WHERE e.id_voiture = ?
+        LIMIT 1
+        FOR UPDATE
+    ";
+
+    $preparation_enchere = mysqli_prepare($connexion, $requete_enchere);
+    mysqli_stmt_bind_param($preparation_enchere, "i", $id_voiture);
+    mysqli_stmt_execute($preparation_enchere);
+
+    $resultat_enchere = mysqli_stmt_get_result($preparation_enchere);
+
+    if (mysqli_num_rows($resultat_enchere) === 0) {
+        mysqli_rollback($connexion);
+
+        echo json_encode([
+            "succes" => false,
+            "message" => "enchere introuvable"
+        ]);
+        exit;
+    }
+
+    $enchere = mysqli_fetch_assoc($resultat_enchere);
+
+    $id_enchere = intval($enchere["id_enchere"]);
+    $id_vendeur = intval($enchere["id_vendeur"]);
+    $secondes_restantes = intval($enchere["secondes_restantes"]);
+
+    $ancien_meilleur_acheteur = null;
+
+    if ($enchere["id_meilleur_acheteur"] !== null) {
+        $ancien_meilleur_acheteur = intval($enchere["id_meilleur_acheteur"]);
+    }
+
+    // on bloque si voiture vendue
+    if ($enchere["statut_annonce"] === "vendue") {
+        mysqli_rollback($connexion);
+
+        echo json_encode([
+            "succes" => false,
+            "message" => "ce vehicule est deja vendu"
+        ]);
+        exit;
+    }
+
+    // on bloque si enchere pas active
+    if ($enchere["statut_enchere"] !== "active") {
+        mysqli_rollback($connexion);
+
+        echo json_encode([
+            "succes" => false,
+            "message" => "enchere terminee"
+        ]);
+        exit;
+    }
+
+    // on bloque si le temps est termine
+    if ($secondes_restantes <= 0) {
+        $requete_terminee = "
+            UPDATE ENCHERE
+            SET statut_enchere = 'terminee'
+            WHERE id_enchere = ?
+        ";
+
+        $preparation_terminee = mysqli_prepare($connexion, $requete_terminee);
+        mysqli_stmt_bind_param($preparation_terminee, "i", $id_enchere);
+        mysqli_stmt_execute($preparation_terminee);
+
+        mysqli_commit($connexion);
+
+        echo json_encode([
+            "succes" => false,
+            "message" => "enchere terminee, en attente de confirmation admin"
+        ]);
+        exit;
+    }
+
+    // on bloque si l'offre n'est pas superieure
+    if ($montant_offre <= floatval($enchere["prix_actuel"])) {
+        mysqli_rollback($connexion);
+
+        echo json_encode([
+            "succes" => false,
+            "message" => "votre offre doit etre superieure au prix actuel"
+        ]);
+        exit;
+    }
+
+    // on ajoute l'offre
+    $requete_offre = "
+        INSERT INTO OFFRE_ENCHERE (
+            montant_offre,
+            id_enchere,
+            id_acheteur
+        )
+        VALUES (?, ?, ?)
+    ";
+
+    $preparation_offre = mysqli_prepare($connexion, $requete_offre);
+    mysqli_stmt_bind_param(
+        $preparation_offre,
+        "dii",
+        $montant_offre,
+        $id_enchere,
+        $id_acheteur
+    );
+    mysqli_stmt_execute($preparation_offre);
+
+    // si moins d'une minute restante, on remet exactement a 1 minute avec mysql
+    if ($secondes_restantes < 60) {
+        $requete_update_enchere = "
+            UPDATE ENCHERE
+            SET 
+                prix_actuel = ?,
+                id_meilleur_acheteur = ?,
+                date_fin = DATE_ADD(NOW(), INTERVAL 1 MINUTE)
+            WHERE id_enchere = ?
+        ";
+    } else {
+        $requete_update_enchere = "
+            UPDATE ENCHERE
+            SET 
+                prix_actuel = ?,
+                id_meilleur_acheteur = ?
+            WHERE id_enchere = ?
+        ";
+    }
+
+    $preparation_update_enchere = mysqli_prepare($connexion, $requete_update_enchere);
+    mysqli_stmt_bind_param(
+        $preparation_update_enchere,
+        "dii",
+        $montant_offre,
+        $id_acheteur,
+        $id_enchere
+    );
+    mysqli_stmt_execute($preparation_update_enchere);
+
+    // notification ancien meilleur acheteur
+    if ($ancien_meilleur_acheteur !== null && $ancien_meilleur_acheteur !== $id_acheteur) {
+        $message_depasse = "vous avez ete depasse sur l'enchere " . $enchere["nom_marque"] . " " . $enchere["modele"];
+        $type_depasse = "enchere_depassee";
+
+        $requete_notification_depasse = "
+            INSERT INTO NOTIFICATION (message, type_notification, lu, id_utilisateur)
+            VALUES (?, ?, FALSE, ?)
+        ";
+
+        $preparation_depasse = mysqli_prepare($connexion, $requete_notification_depasse);
+        mysqli_stmt_bind_param(
+            $preparation_depasse,
+            "ssi",
+            $message_depasse,
+            $type_depasse,
+            $ancien_meilleur_acheteur
+        );
+        mysqli_stmt_execute($preparation_depasse);
+    }
+
+    // notification vendeur
+    $montant_formate = number_format($montant_offre, 0, ",", " ");
+    $message_vendeur = "une nouvelle offre de " . $montant_formate . " euros a ete faite sur " . $enchere["nom_marque"] . " " . $enchere["modele"];
+    $type_vendeur = "enchere_recue";
+
+    $requete_notification_vendeur = "
+        INSERT INTO NOTIFICATION (message, type_notification, lu, id_utilisateur)
+        VALUES (?, ?, FALSE, ?)
+    ";
+
+    $preparation_vendeur = mysqli_prepare($connexion, $requete_notification_vendeur);
+    mysqli_stmt_bind_param(
+        $preparation_vendeur,
+        "ssi",
+        $message_vendeur,
+        $type_vendeur,
+        $id_vendeur
+    );
+    mysqli_stmt_execute($preparation_vendeur);
+
+    mysqli_commit($connexion);
+
+    echo json_encode([
+        "succes" => true,
+        "message" => "offre envoyee"
+    ]);
+    exit;
+
+} catch (Throwable $erreur) {
+    if ($transaction_lancee === true) {
+        mysqli_rollback($connexion);
+    }
+
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur enchere : " . $erreur->getMessage()
+    ]);
+    exit;
+}
+?>
