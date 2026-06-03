@@ -1,0 +1,178 @@
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    // on verifie que l'admin est connecte
+    if (!isset($_SESSION["id_utilisateur"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "utilisateur non connecte"
+        ]);
+        exit;
+    }
+
+    if ($_SESSION["role"] !== "admin") {
+        echo json_encode([
+            "succes" => false,
+            "message" => "acces refuse"
+        ]);
+        exit;
+    }
+
+    if (!isset($_POST["id_voiture"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "id voiture manquant"
+        ]);
+        exit;
+    }
+
+    $id_voiture = intval($_POST["id_voiture"]);
+
+    // on recupere les infos de la voiture
+    $requete_voiture = "
+        SELECT 
+            v.id_voiture,
+            v.modele,
+            v.prix,
+            v.mode_vente,
+            v.duree_enchere_minutes,
+            v.id_vendeur,
+            m.nom_marque
+        FROM VOITURE v
+        INNER JOIN MARQUE m ON v.id_marque = m.id_marque
+        WHERE v.id_voiture = ?
+        LIMIT 1
+    ";
+
+    $preparation_voiture = mysqli_prepare($connexion, $requete_voiture);
+    mysqli_stmt_bind_param($preparation_voiture, "i", $id_voiture);
+    mysqli_stmt_execute($preparation_voiture);
+
+    $resultat_voiture = mysqli_stmt_get_result($preparation_voiture);
+
+    if (mysqli_num_rows($resultat_voiture) === 0) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "voiture introuvable"
+        ]);
+        exit;
+    }
+
+    $voiture = mysqli_fetch_assoc($resultat_voiture);
+
+    mysqli_begin_transaction($connexion);
+
+    // on valide l'annonce
+    $requete_validation = "
+        UPDATE VOITURE
+        SET statut_annonce = 'validee'
+        WHERE id_voiture = ?
+    ";
+
+    $preparation_validation = mysqli_prepare($connexion, $requete_validation);
+    mysqli_stmt_bind_param($preparation_validation, "i", $id_voiture);
+    mysqli_stmt_execute($preparation_validation);
+
+    // si c'est une enchere, on cree l'enchere
+    if ($voiture["mode_vente"] === "enchere") {
+
+        $duree_minutes = intval($voiture["duree_enchere_minutes"]);
+
+        // securite si le vendeur n'a pas choisi de duree
+        if ($duree_minutes <= 0) {
+            $duree_minutes = 10;
+        }
+
+        // on verifie qu'il n'y a pas deja une enchere pour cette voiture
+        $requete_verif = "
+            SELECT id_enchere
+            FROM ENCHERE
+            WHERE id_voiture = ?
+            LIMIT 1
+        ";
+
+        $preparation_verif = mysqli_prepare($connexion, $requete_verif);
+        mysqli_stmt_bind_param($preparation_verif, "i", $id_voiture);
+        mysqli_stmt_execute($preparation_verif);
+
+        $resultat_verif = mysqli_stmt_get_result($preparation_verif);
+
+        if (mysqli_num_rows($resultat_verif) === 0) {
+            $requete_enchere = "
+                INSERT INTO ENCHERE (
+                    prix_depart,
+                    prix_actuel,
+                    date_debut,
+                    date_fin,
+                    statut_enchere,
+                    id_voiture
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    NOW(),
+                    DATE_ADD(NOW(), INTERVAL ? MINUTE),
+                    'active',
+                    ?
+                )
+            ";
+
+            $prix_depart = floatval($voiture["prix"]);
+
+            $preparation_enchere = mysqli_prepare($connexion, $requete_enchere);
+            mysqli_stmt_bind_param(
+                $preparation_enchere,
+                "ddii",
+                $prix_depart,
+                $prix_depart,
+                $duree_minutes,
+                $id_voiture
+            );
+            mysqli_stmt_execute($preparation_enchere);
+        }
+    }
+
+    // notification vendeur
+    $message = "votre annonce " . $voiture["nom_marque"] . " " . $voiture["modele"] . " a ete validee";
+    $type_notification = "annonce_validee";
+
+    $requete_notification = "
+        INSERT INTO NOTIFICATION (message, type_notification, lu, id_utilisateur)
+        VALUES (?, ?, FALSE, ?)
+    ";
+
+    $preparation_notification = mysqli_prepare($connexion, $requete_notification);
+    mysqli_stmt_bind_param(
+        $preparation_notification,
+        "ssi",
+        $message,
+        $type_notification,
+        $voiture["id_vendeur"]
+    );
+    mysqli_stmt_execute($preparation_notification);
+
+    mysqli_commit($connexion);
+
+    echo json_encode([
+        "succes" => true,
+        "message" => "annonce validee"
+    ]);
+    exit;
+
+} catch (Throwable $erreur) {
+    mysqli_rollback($connexion);
+
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur validation : " . $erreur->getMessage()
+    ]);
+    exit;
+}
+?>
