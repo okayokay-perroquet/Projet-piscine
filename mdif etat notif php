@@ -1,1 +1,64 @@
 
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    if (!isset($_SESSION["id_utilisateur"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "utilisateur non connecte"
+        ]);
+        exit;
+    }
+
+    if (!isset($_POST["id_notification"]) || !isset($_POST["lu"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "donnees manquantes"
+        ]);
+        exit;
+    }
+
+    $id_utilisateur = intval($_SESSION["id_utilisateur"]);
+    $id_notification = intval($_POST["id_notification"]);
+    $lu = intval($_POST["lu"]);
+
+    if ($lu !== 0 && $lu !== 1) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "etat invalide"
+        ]);
+        exit;
+    }
+
+    $requete = "
+        UPDATE NOTIFICATION
+        SET lu = ?
+        WHERE id_notification = ?
+        AND id_utilisateur = ?
+    ";
+
+    $preparation = mysqli_prepare($connexion, $requete);
+    mysqli_stmt_bind_param($preparation, "iii", $lu, $id_notification, $id_utilisateur);
+    mysqli_stmt_execute($preparation);
+
+    echo json_encode([
+        "succes" => true,
+        "message" => "notification mise a jour"
+    ]);
+    exit;
+
+} catch (Throwable $erreur) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur modification notification : " . $erreur->getMessage()
+    ]);
+    exit;
+}
+?>
