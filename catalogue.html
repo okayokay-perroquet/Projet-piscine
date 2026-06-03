@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue - Mercato Nova Prestige</title>
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/catalogue.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+    <header class="en-tete">
+        <div class="logo">Mercato Nova <span>Prestige</span></div>
+
+        <nav class="navigation">
+            <a href="index.html">Accueil</a>
+            <a href="catalogue.html">Catalogue</a>
+            <a href="fiche_voiture.html">Fiche voiture</a>
+            <a href="espace_vendeur.html">Vendre</a>
+            <a href="espace_acheteur.html" class="lien-connexion">Mon espace</a>
+        </nav>
+    </header>
+
+    <section class="page-catalogue">
+        <div class="titre-page">
+            <p class="petit-titre">catalogue prestige</p>
+            <h1>Explorez nos véhicules d’exception</h1>
+            <p>
+                Filtrez les annonces selon vos préférences et découvrez les modèles disponibles
+                en achat immédiat, en enchère ou en négociation.
+            </p>
+        </div>
+
+        <div class="zone-catalogue">
+
+            <aside class="filtres">
+                <h2>Filtres</h2>
+
+                <label for="rechercheVoiture">Recherche</label>
+                <input type="text" id="rechercheVoiture" placeholder="ex : ferrari, porsche...">
+
+                <label for="filtreMode">Mode de vente</label>
+                <select id="filtreMode">
+                    <option value="">Tous</option>
+                    <option value="achat_immediat">Achat immédiat</option>
+                    <option value="enchere">Enchère</option>
+                    <option value="negociation">Négociation</option>
+                </select>
+
+                <label for="filtrePrix">Prix maximum</label>
+                <select id="filtrePrix">
+                    <option value="">Tous</option>
+                    <option value="200000">moins de 200 000 €</option>
+                    <option value="300000">moins de 300 000 €</option>
+                    <option value="400000">moins de 400 000 €</option>
+                </select>
+
+                <button class="bouton bouton-principal" id="boutonFiltrer">Appliquer</button>
+            </aside>
+
+            <main class="resultats-catalogue">
+                <div class="barre-resultats">
+                    <div>
+                        <p class="petit-titre">vehicules disponibles</p>
+                        <h2>Catalogue</h2>
+                    </div>
+
+                    <p id="nombreResultats">chargement...</p>
+                </div>
+
+                <div class="grille-voitures catalogue-grille" id="listeVoitures">
+                    <!-- les voitures arrivent ici avec javascript -->
+                </div>
+            </main>
+
+        </div>
+    </section>
+
+    <footer class="pied-page">
+        <p>© 2026 Mercato Nova Prestige</p>
+        <p>Catalogue connecté à la base MySQL</p>
+    </footer>
+
+    <script src="js/catalogue.js"></script>
+</body>
+</html>
