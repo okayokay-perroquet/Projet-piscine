@@ -1,0 +1,154 @@
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    if (!isset($_POST["email"]) || !isset($_POST["mot_de_passe"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "email ou mot de passe manquant"
+        ]);
+        exit;
+    }
+
+    $email = trim($_POST["email"]);
+    $mot_de_passe = trim($_POST["mot_de_passe"]);
+
+    if ($email === "" || $mot_de_passe === "") {
+        echo json_encode([
+            "succes" => false,
+            "message" => "merci de remplir tous les champs"
+        ]);
+        exit;
+    }
+
+    // on cherche le compte avec son role et les infos de ban
+    $requete = "
+        SELECT 
+            u.id_utilisateur,
+            u.nom,
+            u.prenom,
+            u.email,
+            u.mot_de_passe,
+            u.statut_compte,
+            u.date_fin_ban,
+            u.motif_ban,
+            u.banni_par,
+            r.nom_role,
+            admin.nom AS nom_admin,
+            admin.prenom AS prenom_admin
+        FROM UTILISATEUR u
+        INNER JOIN ROLE r ON u.id_role = r.id_role
+        LEFT JOIN UTILISATEUR admin ON u.banni_par = admin.id_utilisateur
+        WHERE u.email = ?
+        LIMIT 1
+    ";
+
+    $preparation = mysqli_prepare($connexion, $requete);
+    mysqli_stmt_bind_param($preparation, "s", $email);
+    mysqli_stmt_execute($preparation);
+
+    $resultat = mysqli_stmt_get_result($preparation);
+
+    if (mysqli_num_rows($resultat) === 0) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "aucun compte ne correspond à cet email"
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $utilisateur = mysqli_fetch_assoc($resultat);
+
+    // si le statut est vide, on considere le compte actif
+    if ($utilisateur["statut_compte"] === null || $utilisateur["statut_compte"] === "") {
+        $utilisateur["statut_compte"] = "actif";
+    }
+
+    // on verifie d'abord si le compte est banni
+    // comme ca l'utilisateur voit directement la raison du ban
+    if ($utilisateur["statut_compte"] === "banni") {
+        $date_fin_ban = strtotime($utilisateur["date_fin_ban"]);
+        $maintenant = time();
+
+        // si la date de ban est passee, on debannit automatiquement
+        if ($date_fin_ban !== false && $date_fin_ban <= $maintenant) {
+            $requete_deban = "
+                UPDATE UTILISATEUR
+                SET 
+                    statut_compte = 'actif',
+                    date_fin_ban = NULL,
+                    motif_ban = NULL,
+                    banni_par = NULL
+                WHERE id_utilisateur = ?
+            ";
+
+            $preparation_deban = mysqli_prepare($connexion, $requete_deban);
+            mysqli_stmt_bind_param($preparation_deban, "i", $utilisateur["id_utilisateur"]);
+            mysqli_stmt_execute($preparation_deban);
+
+            $utilisateur["statut_compte"] = "actif";
+        } else {
+            $admin = "un administrateur";
+
+            if (!empty($utilisateur["prenom_admin"]) || !empty($utilisateur["nom_admin"])) {
+                $admin = trim($utilisateur["prenom_admin"] . " " . $utilisateur["nom_admin"]);
+            }
+
+            $date_affichee = "date non précisée";
+
+            if (!empty($utilisateur["date_fin_ban"])) {
+                $date_affichee = date("d/m/Y à H:i", strtotime($utilisateur["date_fin_ban"]));
+            }
+
+            $motif = "aucun motif indiqué";
+
+            if (!empty($utilisateur["motif_ban"])) {
+                $motif = $utilisateur["motif_ban"];
+            }
+
+            echo json_encode([
+                "succes" => false,
+                "banni" => true,
+                "message" => "Compte banni par " . $admin . " jusqu'au " . $date_affichee . ". Motif : " . $motif
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
+
+    // si le compte n'est pas banni, on verifie le mot de passe
+    if ($mot_de_passe !== $utilisateur["mot_de_passe"]) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "mot de passe incorrect"
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // connexion normale
+    $_SESSION["id_utilisateur"] = $utilisateur["id_utilisateur"];
+    $_SESSION["nom"] = $utilisateur["nom"];
+    $_SESSION["prenom"] = $utilisateur["prenom"];
+    $_SESSION["email"] = $utilisateur["email"];
+    $_SESSION["role"] = $utilisateur["nom_role"];
+
+    echo json_encode([
+        "succes" => true,
+        "message" => "connexion réussie",
+        "role" => $utilisateur["nom_role"]
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+
+} catch (Throwable $erreur) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur connexion : " . $erreur->getMessage()
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+?>
