@@ -1,0 +1,82 @@
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+// on renvoie du json
+header("Content-Type: application/json; charset=utf-8");
+
+// on verifie que l'admin est connecte
+if (!isset($_SESSION["id_utilisateur"]) || $_SESSION["role"] !== "admin") {
+    echo json_encode([
+        "succes" => false,
+        "message" => "acces refuse"
+    ]);
+    exit;
+}
+
+// on recupere l'id de la voiture
+if (!isset($_POST["id_voiture"])) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "id manquant"
+    ]);
+    exit;
+}
+
+$id_voiture = intval($_POST["id_voiture"]);
+
+// on recupere le vendeur avant refus
+$requete_vendeur = "SELECT id_vendeur FROM VOITURE WHERE id_voiture = ?";
+$preparation_vendeur = mysqli_prepare($connexion, $requete_vendeur);
+mysqli_stmt_bind_param($preparation_vendeur, "i", $id_voiture);
+mysqli_stmt_execute($preparation_vendeur);
+$resultat_vendeur = mysqli_stmt_get_result($preparation_vendeur);
+
+if (mysqli_num_rows($resultat_vendeur) === 0) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "voiture introuvable"
+    ]);
+    exit;
+}
+
+$voiture = mysqli_fetch_assoc($resultat_vendeur);
+$id_vendeur = $voiture["id_vendeur"];
+
+// on refuse l'annonce
+$requete = "
+    UPDATE VOITURE
+    SET statut_annonce = 'refusee'
+    WHERE id_voiture = ?
+";
+
+$preparation = mysqli_prepare($connexion, $requete);
+mysqli_stmt_bind_param($preparation, "i", $id_voiture);
+
+if (!mysqli_stmt_execute($preparation)) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur refus"
+    ]);
+    exit;
+}
+
+// on notifie le vendeur
+$message = "votre annonce a ete refusee par l'administrateur";
+$type_notification = "annonce_refusee";
+
+$requete_notification = "
+    INSERT INTO NOTIFICATION (message, type_notification, lu, id_utilisateur)
+    VALUES (?, ?, FALSE, ?)
+";
+
+$preparation_notification = mysqli_prepare($connexion, $requete_notification);
+mysqli_stmt_bind_param($preparation_notification, "ssi", $message, $type_notification, $id_vendeur);
+mysqli_stmt_execute($preparation_notification);
+
+echo json_encode([
+    "succes" => true,
+    "message" => "annonce refusee"
+]);
+?>
