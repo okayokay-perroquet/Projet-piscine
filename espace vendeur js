@@ -1,0 +1,749 @@
+// on attend que la page soit chargee
+document.addEventListener("DOMContentLoaded", function() {
+    verifierSessionVendeur();
+    gererMarquePersonnalisee();
+    gererPreviewImagesUpload();
+    afficherMessageRetour();
+    gererChampDureeEnchere();
+    chargerMesAnnonces();
+    chargerNotifications();
+    chargerNegociationsVendeur();
+});
+
+// on affiche ou cache le champ duree enchere
+function gererChampDureeEnchere() {
+    const selectModeVente = document.getElementById("mode_vente");
+    const blocDureeEnchere = document.getElementById("blocDureeEnchere");
+
+    if (!selectModeVente || !blocDureeEnchere) {
+        return;
+    }
+
+    afficherChampDureeEnchere();
+
+    selectModeVente.addEventListener("change", function() {
+        afficherChampDureeEnchere();
+    });
+}
+
+// on affiche le champ seulement si enchere
+function afficherChampDureeEnchere() {
+    const selectModeVente = document.getElementById("mode_vente");
+    const blocDureeEnchere = document.getElementById("blocDureeEnchere");
+
+    if (!selectModeVente || !blocDureeEnchere) {
+        return;
+    }
+
+    if (selectModeVente.value === "enchere") {
+        blocDureeEnchere.style.display = "grid";
+    } else {
+        blocDureeEnchere.style.display = "none";
+    }
+}
+
+// on verifie la session du vendeur
+function verifierSessionVendeur() {
+    fetch("../backend/session_utilisateur.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.connecte === true) {
+                afficherVendeur(donnees.utilisateur);
+            } else {
+                afficherNonConnecte();
+            }
+        })
+        .catch(function() {
+            afficherNonConnecte();
+        });
+}
+
+// on affiche le profil vendeur
+function afficherVendeur(utilisateur) {
+    const carteProfil = document.getElementById("carteProfilVendeur");
+
+    if (!carteProfil) {
+        return;
+    }
+
+    carteProfil.innerHTML = `
+        <h2>Mon profil</h2>
+        <p><strong>Nom :</strong> ${utilisateur.prenom} ${utilisateur.nom}</p>
+        <p><strong>Email :</strong> ${utilisateur.email}</p>
+        <p><strong>Rôle :</strong> ${utilisateur.role}</p>
+    `;
+
+    if (utilisateur.role !== "vendeur") {
+        carteProfil.innerHTML += `
+            <p class="message-erreur">cet espace est prévu pour les vendeurs</p>
+        `;
+    }
+}
+
+// si personne n'est connecte
+function afficherNonConnecte() {
+    document.querySelector(".page-vendeur").innerHTML = `
+        <div class="intro-formulaire-vendeur">
+            <h1>Vous n’êtes pas connecté</h1>
+            <p>Connectez-vous avec un compte vendeur pour publier une annonce.</p>
+            <a href="connexion.html" class="bouton bouton-principal">Se connecter</a>
+        </div>
+    `;
+}
+
+// message apres ajout annonce
+function afficherMessageRetour() {
+    const parametres = new URLSearchParams(window.location.search);
+    const messageRetour = document.getElementById("messageRetour");
+
+    if (!messageRetour) {
+        return;
+    }
+
+    if (parametres.get("ajout") === "ok") {
+        messageRetour.innerHTML = `
+            <div class="message-succes">
+                annonce ajoutée avec succès, elle est maintenant en attente de validation
+            </div>
+        `;
+    }
+
+    if (parametres.get("ajout") === "erreur") {
+        const details = parametres.get("details");
+
+        messageRetour.innerHTML = `
+            <div class="message-erreur">
+                erreur lors de l’ajout de l’annonce
+                ${details ? `<br><small>${details}</small>` : ""}
+            </div>
+        `;
+    }
+}
+
+// on charge les annonces du vendeur
+function chargerMesAnnonces() {
+    fetch("../backend/afficher_mes_annonces.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.succes === true) {
+                afficherMesAnnonces(donnees.annonces);
+            } else {
+                afficherErreurAnnonces();
+            }
+        })
+        .catch(function() {
+            afficherErreurAnnonces();
+        });
+}
+
+// on affiche les annonces du vendeur
+function afficherMesAnnonces(annonces) {
+    const zone = document.getElementById("listeMesAnnonces");
+    const compteur = document.getElementById("nombreMesAnnonces");
+
+    if (!zone || !compteur) {
+        return;
+    }
+
+    zone.innerHTML = "";
+    compteur.textContent = annonces.length + " annonce(s)";
+
+    if (annonces.length === 0) {
+        zone.innerHTML = `
+            <p class="message-vide-vendeur">vous n’avez encore publié aucune annonce</p>
+        `;
+        return;
+    }
+
+    annonces.forEach(function(annonce) {
+        const prixFormate = Number(annonce.prix).toLocaleString("fr-FR");
+        const kilometrageFormate = Number(annonce.kilometrage).toLocaleString("fr-FR");
+
+        zone.innerHTML += `
+            <article class="carte-annonce-vendeur">
+                <img src="${annonce.url_image}" alt="${annonce.nom_marque} ${annonce.modele}">
+
+                <div class="contenu-annonce-vendeur">
+                    <div class="ligne-haut-annonce">
+                        <span class="badge-statut ${classeStatut(annonce.statut_annonce)}">
+                            ${formaterStatut(annonce.statut_annonce)}
+                        </span>
+
+                        <span>${formaterModeVente(annonce.mode_vente)}</span>
+                    </div>
+
+                    <h3>${annonce.nom_marque} ${annonce.modele}</h3>
+
+                    <p>${annonce.annee} • ${kilometrageFormate} km • ${annonce.puissance} ch</p>
+
+                    <strong>${prixFormate} €</strong>
+
+                    <div class="actions-annonce-vendeur">
+                        <a href="fiche_voiture.html?id=${annonce.id_voiture}">Voir</a>
+                        <button onclick="supprimerAnnonce(${annonce.id_voiture})">Supprimer</button>
+                    </div>
+                </div>
+            </article>
+        `;
+    });
+}
+
+// on supprime une annonce vendeur
+function supprimerAnnonce(idVoiture) {
+    if (!confirm("supprimer cette annonce ?")) {
+        return;
+    }
+
+    const donnees = new FormData();
+    donnees.append("id_voiture", idVoiture);
+
+    fetch("../backend/supprimer_annonce_vendeur.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                chargerMesAnnonces();
+                chargerNotifications();
+            } else {
+                alert(resultat.message || "erreur lors de la suppression");
+            }
+        })
+        .catch(function() {
+            alert("erreur lors de la suppression");
+        });
+}
+
+// on charge les notifications du vendeur
+function chargerNotifications() {
+    fetch("../backend/afficher_notifications_utilisateur.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.succes === true) {
+                afficherNotifications(donnees.notifications);
+            } else {
+                afficherErreurNotifications();
+            }
+        })
+        .catch(function() {
+            afficherErreurNotifications();
+        });
+}
+
+// on affiche les notifications avec etat lu / non lu
+function afficherNotifications(notifications) {
+    const zone = document.getElementById("listeNotifications");
+
+    if (!zone) {
+        return;
+    }
+
+    zone.innerHTML = "";
+
+    if (notifications.length === 0) {
+        zone.innerHTML = `
+            <p class="message-vide-vendeur">aucune notification pour le moment</p>
+        `;
+        return;
+    }
+
+    const notificationsNonLues = notifications.filter(function(notification) {
+        return Number(notification.lu) === 0;
+    });
+
+    zone.innerHTML += `
+        <div class="resume-notifications">
+            <strong>${notificationsNonLues.length}</strong> notification(s) non lue(s)
+        </div>
+    `;
+
+    notifications.forEach(function(notification) {
+        const estLue = Number(notification.lu) === 1;
+
+        let classeNotification = "notification-vendeur notification-non-lue";
+        let texteBouton = "Marquer comme lu";
+        let nouvelEtat = 1;
+
+        if (estLue) {
+            classeNotification = "notification-vendeur notification-lue";
+            texteBouton = "Marquer comme non lu";
+            nouvelEtat = 0;
+        }
+
+        zone.innerHTML += `
+            <div class="${classeNotification}">
+                <div class="haut-notification">
+                    <strong>${formaterTypeNotification(notification.type_notification)}</strong>
+
+                    <span class="badge-notification ${estLue ? "badge-lue" : "badge-non-lue"}">
+                        ${estLue ? "lue" : "non lue"}
+                    </span>
+                </div>
+
+                <p>${notification.message}</p>
+
+                <div class="bas-notification">
+                    <span>${notification.date_notification}</span>
+
+                    <button onclick="modifierEtatNotification(${notification.id_notification}, ${nouvelEtat})">
+                        ${texteBouton}
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// modifier notification vendeur
+function modifierEtatNotification(idNotification, nouvelEtat) {
+    const donnees = new FormData();
+    donnees.append("id_notification", idNotification);
+    donnees.append("lu", nouvelEtat);
+
+    fetch("../backend/modifier_etat_notification.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                chargerNotifications();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert("erreur lors de la modification de la notification");
+        });
+}
+
+// erreur annonces
+function afficherErreurAnnonces() {
+    const compteur = document.getElementById("nombreMesAnnonces");
+    const zone = document.getElementById("listeMesAnnonces");
+
+    if (compteur) {
+        compteur.textContent = "erreur";
+    }
+
+    if (zone) {
+        zone.innerHTML =
+            "<p class='message-vide-vendeur'>impossible de charger les annonces</p>";
+    }
+}
+
+// erreur notifications
+function afficherErreurNotifications() {
+    const zone = document.getElementById("listeNotifications");
+
+    if (zone) {
+        zone.innerHTML =
+            "<p class='message-vide-vendeur'>impossible de charger les notifications</p>";
+    }
+}
+
+// classe couleur du statut
+function classeStatut(statut) {
+    if (statut === "validee") {
+        return "statut-validee";
+    }
+
+    if (statut === "vendue") {
+        return "statut-refusee";
+    }
+
+    if (statut === "refusee") {
+        return "statut-refusee";
+    }
+
+    return "statut-attente";
+}
+
+// texte propre du statut
+function formaterStatut(statut) {
+    if (statut === "validee") {
+        return "validée";
+    }
+
+    if (statut === "refusee") {
+        return "refusée";
+    }
+
+    if (statut === "vendue") {
+        return "vendue";
+    }
+
+    if (statut === "en_attente") {
+        return "en attente";
+    }
+
+    return statut;
+}
+
+// affichage propre du mode de vente
+function formaterModeVente(mode) {
+    if (mode === "achat_immediat") {
+        return "achat immédiat";
+    }
+
+    if (mode === "enchere") {
+        return "enchère";
+    }
+
+    if (mode === "negociation") {
+        return "négociation";
+    }
+
+    return mode;
+}
+
+// affichage propre des notifications
+function formaterTypeNotification(type) {
+    if (type === "annonce_validee") {
+        return "annonce validée";
+    }
+
+    if (type === "annonce_refusee") {
+        return "annonce refusée";
+    }
+
+    if (type === "annonce_a_valider") {
+        return "annonce à valider";
+    }
+
+    if (type === "annonce_supprimee") {
+        return "annonce supprimée";
+    }
+
+    if (type === "voiture_vendue") {
+        return "voiture vendue";
+    }
+
+    if (type === "negociation_recue") {
+        return "négociation reçue";
+    }
+
+    if (type === "negociation_mise_a_jour") {
+        return "négociation mise à jour";
+    }
+
+    if (type === "negociation_acceptee") {
+        return "négociation acceptée";
+    }
+
+    if (type === "enchere_recue") {
+        return "enchère reçue";
+    }
+
+    if (type === "enchere_depassee") {
+        return "enchère dépassée";
+    }
+
+    if (type === "enchere_expiree") {
+        return "enchère expirée";
+    }
+
+    if (type === "enchere_gagnee") {
+        return "enchère gagnée";
+    }
+
+    if (type === "vente_enchere_confirmee") {
+        return "vente enchère confirmée";
+    }
+
+    return type;
+}
+
+// chargement des negociations vendeur
+function chargerNegociationsVendeur() {
+    fetch("../backend/afficher_negociations_vendeur.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.succes === true) {
+                afficherNegociationsVendeur(donnees.negociations);
+            }
+        })
+        .catch(function() {
+            const zone = document.getElementById("listeNegociationsVendeur");
+
+            if (zone) {
+                zone.innerHTML =
+                    "<p class='message-vide-vendeur'>impossible de charger les négociations</p>";
+            }
+        });
+}
+
+// affichage des negociations vendeur
+function afficherNegociationsVendeur(negociations) {
+    const zone = document.getElementById("listeNegociationsVendeur");
+    const compteur = document.getElementById("nombreNegociationsVendeur");
+
+    if (!zone || !compteur) {
+        return;
+    }
+
+    zone.innerHTML = "";
+    compteur.textContent = negociations.length + " négociation(s)";
+
+    if (negociations.length === 0) {
+        zone.innerHTML = `
+            <p class="message-vide-vendeur">aucune négociation reçue pour le moment</p>
+        `;
+        return;
+    }
+
+    negociations.forEach(function(negociation) {
+        const prixPropose = Number(negociation.prix_propose).toLocaleString("fr-FR");
+        const prixInitial = Number(negociation.prix).toLocaleString("fr-FR");
+
+        zone.innerHTML += `
+            <article class="carte-negociation-vendeur">
+                <img src="${negociation.url_image}" alt="${negociation.nom_marque} ${negociation.modele}">
+
+                <div class="contenu-negociation-vendeur">
+                    <span class="badge-negociation ${classeStatutNegociationVendeur(negociation.statut_negociation)}">
+                        ${formaterStatutNegociationVendeur(negociation.statut_negociation)}
+                    </span>
+
+                    <h3>${negociation.nom_marque} ${negociation.modele}</h3>
+
+                    <p>Prix affiché : ${prixInitial} €</p>
+                    <p>Offre reçue : <strong>${prixPropose} €</strong></p>
+                    <p>Acheteur : ${negociation.prenom_acheteur} ${negociation.nom_acheteur}</p>
+
+                    ${negociation.message_acheteur ? `<p>Message : ${negociation.message_acheteur}</p>` : ""}
+                    ${negociation.reponse_vendeur ? `<p>Votre réponse : ${negociation.reponse_vendeur}</p>` : ""}
+
+                    ${genererActionsNegociationVendeur(negociation)}
+                </div>
+            </article>
+        `;
+    });
+}
+
+// boutons negociation vendeur
+function genererActionsNegociationVendeur(negociation) {
+    if (negociation.statut_negociation !== "en_attente") {
+        return "";
+    }
+
+    return `
+        <div class="actions-negociation-vendeur">
+            <button class="bouton-accepter-negociation" onclick="repondreNegociation(${negociation.id_negociation}, 'accepter')">
+                Accepter
+            </button>
+
+            <button class="bouton-refuser-negociation" onclick="repondreNegociation(${negociation.id_negociation}, 'refuser')">
+                Refuser
+            </button>
+
+            <button class="bouton-contre-negociation" onclick="contreProposerNegociation(${negociation.id_negociation})">
+                Contre-proposer
+            </button>
+        </div>
+    `;
+}
+
+// reponse vendeur a une negociation
+function repondreNegociation(idNegociation, action) {
+    const donnees = new FormData();
+    donnees.append("id_negociation", idNegociation);
+    donnees.append("action", action);
+    donnees.append("reponse_vendeur", "");
+
+    fetch("../backend/repondre_negociation.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                chargerNegociationsVendeur();
+                chargerNotifications();
+                chargerMesAnnonces();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert("erreur lors de la réponse");
+        });
+}
+
+// contre proposition vendeur
+function contreProposerNegociation(idNegociation) {
+    const reponse = prompt("entrez votre contre-proposition ou votre message");
+
+    if (reponse === null || reponse.trim() === "") {
+        return;
+    }
+
+    const donnees = new FormData();
+    donnees.append("id_negociation", idNegociation);
+    donnees.append("action", "contre_proposer");
+    donnees.append("reponse_vendeur", reponse);
+
+    fetch("../backend/repondre_negociation.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                chargerNegociationsVendeur();
+                chargerNotifications();
+                chargerMesAnnonces();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert("erreur lors de la contre-proposition");
+        });
+}
+
+// classe statut negociation vendeur
+function classeStatutNegociationVendeur(statut) {
+    if (statut === "acceptee") {
+        return "negociation-acceptee";
+    }
+
+    if (statut === "refusee") {
+        return "negociation-refusee";
+    }
+
+    if (statut === "contre_proposition") {
+        return "negociation-contre";
+    }
+
+    return "negociation-attente";
+}
+
+// texte statut negociation vendeur
+function formaterStatutNegociationVendeur(statut) {
+    if (statut === "acceptee") {
+        return "acceptée";
+    }
+
+    if (statut === "refusee") {
+        return "refusée";
+    }
+
+    if (statut === "contre_proposition") {
+        return "contre-proposition";
+    }
+
+    return "en attente";
+}
+
+// affiche le champ marque personnalisee si le vendeur choisit "autre"
+function gererMarquePersonnalisee() {
+    const selectMarque = document.getElementById("id_marque");
+    const blocMarque = document.getElementById("blocMarquePersonnalisee");
+    const champMarque = document.getElementById("marque_personnalisee");
+
+    if (!selectMarque || !blocMarque || !champMarque) {
+        return;
+    }
+
+    afficherChampMarquePersonnalisee();
+
+    selectMarque.addEventListener("change", function() {
+        afficherChampMarquePersonnalisee();
+    });
+}
+
+// affichage marque personnalisee
+function afficherChampMarquePersonnalisee() {
+    const selectMarque = document.getElementById("id_marque");
+    const blocMarque = document.getElementById("blocMarquePersonnalisee");
+    const champMarque = document.getElementById("marque_personnalisee");
+
+    if (!selectMarque || !blocMarque || !champMarque) {
+        return;
+    }
+
+    if (selectMarque.value === "autre") {
+        blocMarque.style.display = "block";
+        champMarque.required = true;
+    } else {
+        blocMarque.style.display = "none";
+        champMarque.required = false;
+        champMarque.value = "";
+    }
+}
+
+// gere l'apercu des images et le choix de l'image principale
+function gererPreviewImagesUpload() {
+    const inputImages = document.getElementById("images_voiture");
+    const preview = document.getElementById("previewImagesUpload");
+    const selectPrincipal = document.getElementById("image_principale_index");
+
+    if (!inputImages || !preview || !selectPrincipal) {
+        return;
+    }
+
+    inputImages.addEventListener("change", function() {
+        preview.innerHTML = "";
+        selectPrincipal.innerHTML = "";
+
+        const fichiers = Array.from(inputImages.files);
+
+        if (fichiers.length > 6) {
+            alert("vous pouvez importer 6 images maximum");
+            inputImages.value = "";
+            selectPrincipal.innerHTML = `<option value="0">Image 1</option>`;
+            return;
+        }
+
+        if (fichiers.length === 0) {
+            selectPrincipal.innerHTML = `<option value="0">Image 1</option>`;
+            return;
+        }
+
+        fichiers.forEach(function(fichier, index) {
+            const option = document.createElement("option");
+            option.value = index;
+            option.textContent = "Image " + (index + 1);
+
+            if (index === 0) {
+                option.selected = true;
+            }
+
+            selectPrincipal.appendChild(option);
+
+            const lecteur = new FileReader();
+
+            lecteur.onload = function(evenement) {
+                const bloc = document.createElement("div");
+                bloc.classList.add("image-preview-upload");
+
+                bloc.innerHTML = `
+                    <img src="${evenement.target.result}" alt="aperçu image ${index + 1}">
+                    <span>Image ${index + 1}</span>
+                `;
+
+                preview.appendChild(bloc);
+            };
+
+            lecteur.readAsDataURL(fichier);
+        });
+    });
+}
