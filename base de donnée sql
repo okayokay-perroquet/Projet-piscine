@@ -1,0 +1,613 @@
+-- phpMyAdmin SQL Dump
+-- version 5.1.2
+-- https://www.phpmyadmin.net/
+--
+-- Hôte : localhost:8889
+-- Généré le : dim. 31 mai 2026 à 21:14
+-- Version du serveur : 5.7.24
+-- Version de PHP : 8.3.1
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Base de données : `mercato_nova_prestige`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `commande`
+--
+
+CREATE TABLE `commande` (
+  `id_commande` int(11) NOT NULL,
+  `date_commande` datetime DEFAULT CURRENT_TIMESTAMP,
+  `prix_final` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `mode_transaction` varchar(50) NOT NULL DEFAULT 'achat_immediat',
+  `statut_commande` enum('en_attente','validee','annulee') DEFAULT 'en_attente',
+  `id_acheteur` int(11) NOT NULL,
+  `id_vendeur` int(11) NOT NULL,
+  `id_voiture` int(11) NOT NULL,
+  `montant_total` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `id_utilisateur` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `commande`
+--
+
+INSERT INTO `commande` (`id_commande`, `date_commande`, `prix_final`, `mode_transaction`, `statut_commande`, `id_acheteur`, `id_vendeur`, `id_voiture`, `montant_total`, `id_utilisateur`) VALUES
+(1, '2026-05-31 19:23:02', '200000.00', 'achat_immediat', 'validee', 1, 2, 9, '200000.00', 1),
+(2, '2026-05-31 19:31:41', '190000.00', 'achat_immediat', 'validee', 1, 6, 10, '190000.00', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `enchere`
+--
+
+CREATE TABLE `enchere` (
+  `id_enchere` int(11) NOT NULL,
+  `prix_depart` decimal(12,2) NOT NULL,
+  `prix_actuel` decimal(12,2) NOT NULL,
+  `date_debut` datetime NOT NULL,
+  `date_fin` datetime NOT NULL,
+  `statut_enchere` enum('active','terminee','confirmee') DEFAULT 'active',
+  `id_voiture` int(11) NOT NULL,
+  `id_meilleur_acheteur` int(11) DEFAULT NULL,
+  `notification_expiration_envoyee` tinyint(1) DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `image_voiture`
+--
+
+CREATE TABLE `image_voiture` (
+  `id_image` int(11) NOT NULL,
+  `url_image` varchar(255) NOT NULL,
+  `image_principale` tinyint(1) DEFAULT '0',
+  `id_voiture` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `image_voiture`
+--
+
+INSERT INTO `image_voiture` (`id_image`, `url_image`, `image_principale`, `id_voiture`) VALUES
+(1, 'images/voitures/ferrari_488.png', 1, 1),
+(2, 'images/voitures/porsche_911.png', 1, 2),
+(3, 'images/voitures/lamborghini_huracan.png', 1, 3),
+(4, 'images/voitures/classG_brabus.png', 1, 4),
+(5, 'images/voitures/ferrari_purosangue.png', 1, 5),
+(6, 'images/voitures/porsche_gt3RS.png', 1, 6),
+(9, 'images/voitures/ferrari_purosangue.png', 1, 9),
+(10, 'images/voitures/porsche_gt3RS.png', 1, 10),
+(12, 'images/voitures/ferrari_488.png', 1, 12);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `ligne_panier`
+--
+
+CREATE TABLE `ligne_panier` (
+  `id_ligne_panier` int(11) NOT NULL,
+  `prix_final` decimal(12,2) NOT NULL,
+  `id_panier` int(11) NOT NULL,
+  `id_voiture` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `marque`
+--
+
+CREATE TABLE `marque` (
+  `id_marque` int(11) NOT NULL,
+  `nom_marque` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `marque`
+--
+
+INSERT INTO `marque` (`id_marque`, `nom_marque`) VALUES
+(5, 'Aston Martin'),
+(6, 'Bentley'),
+(1, 'Ferrari'),
+(3, 'Lamborghini'),
+(4, 'Mercedes-AMG'),
+(2, 'Porsche');
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `negociation`
+--
+
+CREATE TABLE `negociation` (
+  `id_negociation` int(11) NOT NULL,
+  `prix_propose` decimal(12,2) NOT NULL,
+  `message_acheteur` text,
+  `reponse_vendeur` text,
+  `statut_negociation` enum('en_attente','acceptee','refusee','contre_proposition') DEFAULT 'en_attente',
+  `date_negociation` datetime DEFAULT CURRENT_TIMESTAMP,
+  `date_reponse` datetime DEFAULT NULL,
+  `id_acheteur` int(11) NOT NULL,
+  `id_vendeur` int(11) NOT NULL,
+  `id_voiture` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `negociation`
+--
+
+INSERT INTO `negociation` (`id_negociation`, `prix_propose`, `message_acheteur`, `reponse_vendeur`, `statut_negociation`, `date_negociation`, `date_reponse`, `id_acheteur`, `id_vendeur`, `id_voiture`) VALUES
+(6, '199998.00', 'pls bro', '230000', 'acceptee', '2026-05-31 20:44:41', '2026-05-31 20:45:20', 1, 6, 12);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `notification`
+--
+
+CREATE TABLE `notification` (
+  `id_notification` int(11) NOT NULL,
+  `message` text NOT NULL,
+  `type_notification` varchar(50) NOT NULL,
+  `lu` tinyint(1) DEFAULT '0',
+  `date_notification` datetime DEFAULT CURRENT_TIMESTAMP,
+  `id_utilisateur` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `notification`
+--
+
+INSERT INTO `notification` (`id_notification`, `message`, `type_notification`, `lu`, `date_notification`, `id_utilisateur`) VALUES
+(1, 'votre offre sur la porsche 911 turbo s a bien ete envoyee', 'negociation_envoyee', 0, '2026-05-31 14:17:29', 1),
+(2, 'une nouvelle negociation a ete recue sur votre porsche 911 turbo s', 'negociation_recue', 0, '2026-05-31 14:17:29', 2),
+(3, 'votre enchere sur la lamborghini huracan evo a ete depassee', 'enchere_depassee', 0, '2026-05-31 14:17:29', 1),
+(4, 'une annonce bentley continental gt est en attente de validation', 'annonce_a_valider', 0, '2026-05-31 14:17:29', 3),
+(5, 'une nouvelle annonce est en attente de validation', 'annonce_a_valider', 0, '2026-05-31 15:55:17', 3),
+(6, 'votre annonce a ete validee par l\'administrateur', 'annonce_validee', 0, '2026-05-31 16:05:52', 2),
+(7, 'une nouvelle annonce est en attente de validation', 'annonce_a_valider', 0, '2026-05-31 16:58:40', 3),
+(8, 'votre annonce a ete refusee par l\'administrateur', 'annonce_refusee', 0, '2026-05-31 17:00:50', 2),
+(9, 'votre annonce a ete supprimee par l\'administrateur', 'annonce_supprimee', 0, '2026-05-31 18:35:30', 2),
+(10, 'une nouvelle annonce est en attente de validation', 'annonce_a_valider', 0, '2026-05-31 18:51:40', 3),
+(11, 'votre annonce a ete validee par l\'administrateur', 'annonce_validee', 0, '2026-05-31 18:52:40', 2),
+(12, 'votre vehicule Ferrari 911 a ete vendu', 'voiture_vendue', 0, '2026-05-31 19:23:02', 2),
+(13, 'une nouvelle annonce est en attente de validation', 'annonce_a_valider', 0, '2026-05-31 19:27:56', 3),
+(14, 'votre annonce a ete validee par l\'administrateur', 'annonce_validee', 0, '2026-05-31 19:28:56', 6),
+(15, 'votre vehicule Porsche 911 a ete vendu', 'voiture_vendue', 0, '2026-05-31 19:31:41', 6),
+(16, 'une nouvelle annonce est en attente de validation', 'annonce_a_valider', 0, '2026-05-31 19:59:18', 3),
+(17, 'votre annonce a ete validee par l\'administrateur', 'annonce_validee', 0, '2026-05-31 19:59:30', 6),
+(18, 'une nouvelle negociation a ete recue sur votre Mercedes-AMG 911', 'negociation_recue', 0, '2026-05-31 20:00:03', 6),
+(19, 'votre negociation sur Mercedes-AMG 911 a ete mise a jour', 'negociation_mise_a_jour', 0, '2026-05-31 20:01:19', 1),
+(20, 'une nouvelle negociation a ete recue sur votre Mercedes-AMG 911', 'negociation_recue', 0, '2026-05-31 20:08:39', 6),
+(21, 'le vendeur vous a fait une contre-proposition : 180000 sur Mercedes-AMG 911', 'negociation_mise_a_jour', 0, '2026-05-31 20:09:03', 1),
+(22, 'une nouvelle negociation a ete recue sur votre Mercedes-AMG 911', 'negociation_recue', 0, '2026-05-31 20:21:02', 6),
+(23, 'le vendeur vous a fait une contre-proposition : 150000 pls bro sur Mercedes-AMG 911', 'negociation_mise_a_jour', 0, '2026-05-31 20:21:38', 1),
+(24, 'l\'acheteur a accepte votre contre-proposition sur Mercedes-AMG 911', 'negociation_acceptee', 0, '2026-05-31 20:32:07', 6),
+(25, 'une nouvelle negociation a ete recue sur votre Mercedes-AMG 911', 'negociation_recue', 0, '2026-05-31 20:35:42', 6),
+(26, 'votre offre a ete acceptee par le vendeur sur Mercedes-AMG 911', 'negociation_mise_a_jour', 0, '2026-05-31 20:35:55', 1),
+(27, 'une nouvelle negociation a ete recue sur votre Mercedes-AMG 911', 'negociation_recue', 0, '2026-05-31 20:40:35', 6),
+(28, 'votre offre a ete acceptee par le vendeur sur Mercedes-AMG 911', 'negociation_mise_a_jour', 0, '2026-05-31 20:40:43', 1),
+(29, 'l\'acheteur a envoye une nouvelle offre sur Mercedes-AMG 911', 'negociation_recue', 0, '2026-05-31 20:42:48', 6),
+(30, 'votre offre a ete acceptee par le vendeur sur Mercedes-AMG 911', 'negociation_mise_a_jour', 0, '2026-05-31 20:43:01', 1),
+(31, 'votre annonce a ete supprimee par l\'administrateur', 'annonce_supprimee', 0, '2026-05-31 20:43:18', 6),
+(32, 'une nouvelle annonce est en attente de validation', 'annonce_a_valider', 0, '2026-05-31 20:44:06', 3),
+(33, 'votre annonce a ete validee par l\'administrateur', 'annonce_validee', 0, '2026-05-31 20:44:16', 6),
+(34, 'une nouvelle negociation a ete recue sur votre Ferrari 911', 'negociation_recue', 0, '2026-05-31 20:44:41', 6),
+(35, 'le vendeur vous a fait une contre-proposition : 230000 sur Ferrari 911', 'negociation_mise_a_jour', 0, '2026-05-31 20:45:06', 1),
+(36, 'l\'acheteur a accepte votre contre-proposition sur Ferrari 911. Le vehicule est maintenant vendu.', 'negociation_acceptee', 0, '2026-05-31 20:45:20', 6),
+(37, 'une nouvelle annonce est en attente de validation', 'annonce_a_valider', 0, '2026-05-31 21:07:56', 3),
+(38, 'votre annonce Ferrari 911 a ete validee', 'annonce_validee', 0, '2026-05-31 21:08:27', 6),
+(39, 'votre annonce a ete supprimee par l\'administrateur', 'annonce_supprimee', 0, '2026-05-31 21:12:26', 6),
+(40, 'une nouvelle annonce est en attente de validation', 'annonce_a_valider', 0, '2026-05-31 21:12:47', 3),
+(41, 'votre annonce Ferrari 911 a ete validee', 'annonce_validee', 0, '2026-05-31 21:12:55', 6),
+(42, 'une nouvelle offre de 223000 euros a ete faite sur Ferrari 911', 'enchere_recue', 0, '2026-05-31 21:13:58', 6),
+(43, 'une nouvelle annonce est en attente de validation', 'annonce_a_valider', 0, '2026-05-31 21:24:15', 3),
+(44, 'votre annonce Ferrari 911 a ete validee', 'annonce_validee', 0, '2026-05-31 21:24:25', 2),
+(45, 'une nouvelle offre de 100 000 euros a ete faite sur Ferrari 911', 'enchere_recue', 0, '2026-05-31 21:24:46', 2),
+(46, 'votre annonce a ete supprimee par l\'administrateur', 'annonce_supprimee', 0, '2026-05-31 21:36:46', 2),
+(47, 'votre annonce a ete supprimee par l\'administrateur', 'annonce_supprimee', 0, '2026-05-31 21:36:52', 6),
+(48, 'une nouvelle annonce est en attente de validation', 'annonce_a_valider', 0, '2026-05-31 21:37:25', 3),
+(49, 'votre annonce Ferrari 911 a ete validee', 'annonce_validee', 0, '2026-05-31 21:37:33', 6),
+(50, 'une nouvelle offre de 100 000 000 euros a ete faite sur Ferrari 911', 'enchere_recue', 0, '2026-05-31 21:38:02', 6),
+(51, 'l\'enchere sur Ferrari 911 est terminee. Vous etes le meilleur encherisseur, la vente attend la confirmation de l\'admin.', 'enchere_expiree', 0, '2026-05-31 21:39:02', 1),
+(52, 'une nouvelle annonce est en attente de validation', 'annonce_a_valider', 0, '2026-05-31 21:44:43', 3),
+(53, 'l\'admin a confirme votre achat de Ferrari 911 pour 100 000 000 euros. Le vehicule est maintenant vendu.', 'enchere_gagnee', 0, '2026-05-31 21:48:43', 1),
+(54, 'l\'admin a confirme la vente aux encheres de Ferrari 911 pour 100 000 000 euros.', 'vente_enchere_confirmee', 0, '2026-05-31 21:48:43', 6),
+(55, 'votre annonce a ete refusee par l\'administrateur', 'annonce_refusee', 0, '2026-05-31 22:31:43', 6),
+(56, 'votre annonce a ete supprimee par l\'administrateur', 'annonce_supprimee', 0, '2026-05-31 22:31:47', 6),
+(57, 'votre annonce a ete supprimee par l\'administrateur', 'annonce_supprimee', 0, '2026-05-31 22:31:50', 6);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `offre_enchere`
+--
+
+CREATE TABLE `offre_enchere` (
+  `id_offre_enchere` int(11) NOT NULL,
+  `montant_offre` decimal(12,2) NOT NULL,
+  `date_offre` datetime DEFAULT CURRENT_TIMESTAMP,
+  `id_enchere` int(11) NOT NULL,
+  `id_acheteur` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `panier`
+--
+
+CREATE TABLE `panier` (
+  `id_panier` int(11) NOT NULL,
+  `date_creation` datetime DEFAULT CURRENT_TIMESTAMP,
+  `statut_panier` varchar(30) DEFAULT 'actif',
+  `id_utilisateur` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `panier`
+--
+
+INSERT INTO `panier` (`id_panier`, `date_creation`, `statut_panier`, `id_utilisateur`) VALUES
+(1, '2026-05-31 14:17:29', 'actif', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `role`
+--
+
+CREATE TABLE `role` (
+  `id_role` int(11) NOT NULL,
+  `nom_role` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `role`
+--
+
+INSERT INTO `role` (`id_role`, `nom_role`) VALUES
+(1, 'acheteur'),
+(3, 'admin'),
+(2, 'vendeur');
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `utilisateur`
+--
+
+CREATE TABLE `utilisateur` (
+  `id_utilisateur` int(11) NOT NULL,
+  `nom` varchar(100) NOT NULL,
+  `prenom` varchar(100) NOT NULL,
+  `email` varchar(150) NOT NULL,
+  `mot_de_passe` varchar(255) NOT NULL,
+  `telephone` varchar(20) DEFAULT NULL,
+  `date_creation` datetime DEFAULT CURRENT_TIMESTAMP,
+  `statut_compte` varchar(30) DEFAULT 'actif',
+  `id_role` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `utilisateur`
+--
+
+INSERT INTO `utilisateur` (`id_utilisateur`, `nom`, `prenom`, `email`, `mot_de_passe`, `telephone`, `date_creation`, `statut_compte`, `id_role`) VALUES
+(1, 'Martin', 'Alexandre', 'acheteur@test.com', 'test123', '0600000001', '2026-05-31 14:17:28', 'actif', 1),
+(2, 'Durand', 'Camille', 'vendeur@test.com', 'test123', '0600000002', '2026-05-31 14:17:28', 'actif', 2),
+(3, 'Admin', 'Principal', 'admin@test.com', 'test123', '0600000003', '2026-05-31 14:17:28', 'actif', 3),
+(4, 'Moreau', 'Sofia', 'acheteur2@test.com', 'test123', '0600000004', '2026-05-31 14:17:28', 'actif', 1),
+(5, 'Showroom', 'Nova Prestige', 'showroom@test.com', 'test123', '0600000005', '2026-05-31 16:22:12', 'actif', 2),
+(6, 'abidi', 'wafat', 'yarane987@outlook.fr', '$2y$10$2ii3ew5WwMmfJjqd9T2.S.zGecA/0hDwwhqmfCOt3tDrVmkB5WNbq', '0669794938', '2026-05-31 19:25:42', 'actif', 2);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `voiture`
+--
+
+CREATE TABLE `voiture` (
+  `id_voiture` int(11) NOT NULL,
+  `modele` varchar(100) NOT NULL,
+  `annee` int(11) NOT NULL,
+  `kilometrage` int(11) NOT NULL,
+  `puissance` int(11) DEFAULT NULL,
+  `carburant` varchar(50) DEFAULT NULL,
+  `transmission` varchar(50) DEFAULT NULL,
+  `couleur_exterieure` varchar(50) DEFAULT NULL,
+  `couleur_interieure` varchar(50) DEFAULT NULL,
+  `etat` varchar(50) DEFAULT NULL,
+  `prix` decimal(12,2) NOT NULL,
+  `description` text,
+  `mode_vente` varchar(30) NOT NULL,
+  `statut_annonce` enum('en_attente','validee','refusee','vendue') DEFAULT 'en_attente',
+  `date_publication` datetime DEFAULT CURRENT_TIMESTAMP,
+  `id_vendeur` int(11) NOT NULL,
+  `id_marque` int(11) NOT NULL,
+  `duree_enchere_minutes` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `voiture`
+--
+
+INSERT INTO `voiture` (`id_voiture`, `modele`, `annee`, `kilometrage`, `puissance`, `carburant`, `transmission`, `couleur_exterieure`, `couleur_interieure`, `etat`, `prix`, `description`, `mode_vente`, `statut_annonce`, `date_publication`, `id_vendeur`, `id_marque`, `duree_enchere_minutes`) VALUES
+(1, '488 GTB', 2018, 24500, 670, 'essence', 'automatique', 'rouge', 'noir', 'excellent', '245000.00', 'supercar italienne avec configuration premium et historique clair', 'achat_immediat', 'validee', '2026-05-31 14:17:28', 5, 1, NULL),
+(2, '911 Turbo S', 2021, 18500, 650, 'essence', 'automatique', 'gris craie', 'cuir noir', 'excellent', '219900.00', 'porsche 911 turbo s en parfait etat avec options sport chrono', 'negociation', 'validee', '2026-05-31 14:17:28', 5, 2, NULL),
+(3, 'Huracan EVO', 2020, 12000, 640, 'essence', 'automatique', 'jaune', 'alcantara noir', 'excellent', '259000.00', 'lamborghini huracan evo avec faible kilometrage et configuration rare', 'enchere', 'validee', '2026-05-31 14:17:28', 5, 3, NULL),
+(4, 'Classe G Brabus', 2022, 15000, 800, 'essence', 'automatique', 'gris', 'cyan', 'excellent', '289000.00', 'suv de luxe prepare par brabus avec finition sportive et configuration rare', 'achat_immediat', 'validee', '2026-05-31 14:17:28', 5, 4, NULL),
+(5, 'Purosangue', 2023, 6000, 725, 'essence', 'automatique', 'rouge', 'noir', 'excellent', '398000.00', 'ferrari purosangue rouge avec finition luxe et performances sportives', 'negociation', 'validee', '2026-05-31 14:17:28', 5, 1, NULL),
+(6, '911 GT3 RS', 2023, 4500, 525, 'essence', 'automatique', 'vert', 'noir', 'excellent', '312000.00', 'porsche 911 gt3 rs verte avec pack circuit et configuration exclusive', 'enchere', 'validee', '2026-05-31 14:17:28', 5, 2, NULL),
+(9, '911', 2023, 10000, 600, 'essence', 'automatique', 'noir', 'noir', 'excellent', '200000.00', 'sdgerg', 'achat_immediat', 'vendue', '2026-05-31 18:51:40', 2, 1, NULL),
+(10, '911', 2023, 10000, 600, 'essence', 'automatique', 'noir', 'noir', 'tres bon', '190000.00', 'gvhfchffyit', 'achat_immediat', 'vendue', '2026-05-31 19:27:56', 6, 2, NULL),
+(12, '911', 1999, 10000, 555, 'essence', 'automatique', 'noir', 'noir', 'excellent', '255000.00', 'negociable', 'negociation', 'vendue', '2026-05-31 20:44:06', 6, 1, NULL);
+
+--
+-- Index pour les tables déchargées
+--
+
+--
+-- Index pour la table `commande`
+--
+ALTER TABLE `commande`
+  ADD PRIMARY KEY (`id_commande`),
+  ADD UNIQUE KEY `id_voiture` (`id_voiture`),
+  ADD KEY `fk_commande_acheteur` (`id_acheteur`),
+  ADD KEY `fk_commande_vendeur` (`id_vendeur`),
+  ADD KEY `fk_commande_utilisateur` (`id_utilisateur`);
+
+--
+-- Index pour la table `enchere`
+--
+ALTER TABLE `enchere`
+  ADD PRIMARY KEY (`id_enchere`),
+  ADD KEY `fk_enchere_voiture` (`id_voiture`),
+  ADD KEY `fk_enchere_meilleur_acheteur` (`id_meilleur_acheteur`);
+
+--
+-- Index pour la table `image_voiture`
+--
+ALTER TABLE `image_voiture`
+  ADD PRIMARY KEY (`id_image`),
+  ADD KEY `fk_image_voiture` (`id_voiture`);
+
+--
+-- Index pour la table `ligne_panier`
+--
+ALTER TABLE `ligne_panier`
+  ADD PRIMARY KEY (`id_ligne_panier`),
+  ADD KEY `fk_ligne_panier` (`id_panier`),
+  ADD KEY `fk_ligne_voiture` (`id_voiture`);
+
+--
+-- Index pour la table `marque`
+--
+ALTER TABLE `marque`
+  ADD PRIMARY KEY (`id_marque`),
+  ADD UNIQUE KEY `nom_marque` (`nom_marque`);
+
+--
+-- Index pour la table `negociation`
+--
+ALTER TABLE `negociation`
+  ADD PRIMARY KEY (`id_negociation`),
+  ADD KEY `fk_negociation_acheteur` (`id_acheteur`),
+  ADD KEY `fk_negociation_vendeur` (`id_vendeur`),
+  ADD KEY `fk_negociation_voiture` (`id_voiture`);
+
+--
+-- Index pour la table `notification`
+--
+ALTER TABLE `notification`
+  ADD PRIMARY KEY (`id_notification`),
+  ADD KEY `fk_notification_utilisateur` (`id_utilisateur`);
+
+--
+-- Index pour la table `offre_enchere`
+--
+ALTER TABLE `offre_enchere`
+  ADD PRIMARY KEY (`id_offre_enchere`),
+  ADD KEY `fk_offre_enchere_enchere` (`id_enchere`),
+  ADD KEY `fk_offre_enchere_acheteur` (`id_acheteur`);
+
+--
+-- Index pour la table `panier`
+--
+ALTER TABLE `panier`
+  ADD PRIMARY KEY (`id_panier`),
+  ADD KEY `fk_panier_utilisateur` (`id_utilisateur`);
+
+--
+-- Index pour la table `role`
+--
+ALTER TABLE `role`
+  ADD PRIMARY KEY (`id_role`),
+  ADD UNIQUE KEY `nom_role` (`nom_role`);
+
+--
+-- Index pour la table `utilisateur`
+--
+ALTER TABLE `utilisateur`
+  ADD PRIMARY KEY (`id_utilisateur`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `fk_utilisateur_role` (`id_role`);
+
+--
+-- Index pour la table `voiture`
+--
+ALTER TABLE `voiture`
+  ADD PRIMARY KEY (`id_voiture`),
+  ADD KEY `fk_voiture_vendeur` (`id_vendeur`),
+  ADD KEY `fk_voiture_marque` (`id_marque`);
+
+--
+-- AUTO_INCREMENT pour les tables déchargées
+--
+
+--
+-- AUTO_INCREMENT pour la table `commande`
+--
+ALTER TABLE `commande`
+  MODIFY `id_commande` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT pour la table `enchere`
+--
+ALTER TABLE `enchere`
+  MODIFY `id_enchere` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT pour la table `image_voiture`
+--
+ALTER TABLE `image_voiture`
+  MODIFY `id_image` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT pour la table `ligne_panier`
+--
+ALTER TABLE `ligne_panier`
+  MODIFY `id_ligne_panier` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT pour la table `marque`
+--
+ALTER TABLE `marque`
+  MODIFY `id_marque` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT pour la table `negociation`
+--
+ALTER TABLE `negociation`
+  MODIFY `id_negociation` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT pour la table `notification`
+--
+ALTER TABLE `notification`
+  MODIFY `id_notification` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+
+--
+-- AUTO_INCREMENT pour la table `offre_enchere`
+--
+ALTER TABLE `offre_enchere`
+  MODIFY `id_offre_enchere` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT pour la table `panier`
+--
+ALTER TABLE `panier`
+  MODIFY `id_panier` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT pour la table `role`
+--
+ALTER TABLE `role`
+  MODIFY `id_role` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT pour la table `utilisateur`
+--
+ALTER TABLE `utilisateur`
+  MODIFY `id_utilisateur` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT pour la table `voiture`
+--
+ALTER TABLE `voiture`
+  MODIFY `id_voiture` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- Contraintes pour les tables déchargées
+--
+
+--
+-- Contraintes pour la table `commande`
+--
+ALTER TABLE `commande`
+  ADD CONSTRAINT `fk_commande_acheteur` FOREIGN KEY (`id_acheteur`) REFERENCES `utilisateur` (`id_utilisateur`),
+  ADD CONSTRAINT `fk_commande_utilisateur` FOREIGN KEY (`id_utilisateur`) REFERENCES `utilisateur` (`id_utilisateur`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_commande_vendeur` FOREIGN KEY (`id_vendeur`) REFERENCES `utilisateur` (`id_utilisateur`),
+  ADD CONSTRAINT `fk_commande_voiture` FOREIGN KEY (`id_voiture`) REFERENCES `voiture` (`id_voiture`);
+
+--
+-- Contraintes pour la table `enchere`
+--
+ALTER TABLE `enchere`
+  ADD CONSTRAINT `fk_enchere_meilleur_acheteur` FOREIGN KEY (`id_meilleur_acheteur`) REFERENCES `utilisateur` (`id_utilisateur`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_enchere_voiture` FOREIGN KEY (`id_voiture`) REFERENCES `voiture` (`id_voiture`) ON DELETE CASCADE;
+
+--
+-- Contraintes pour la table `image_voiture`
+--
+ALTER TABLE `image_voiture`
+  ADD CONSTRAINT `fk_image_voiture` FOREIGN KEY (`id_voiture`) REFERENCES `voiture` (`id_voiture`) ON DELETE CASCADE;
+
+--
+-- Contraintes pour la table `ligne_panier`
+--
+ALTER TABLE `ligne_panier`
+  ADD CONSTRAINT `fk_ligne_panier` FOREIGN KEY (`id_panier`) REFERENCES `panier` (`id_panier`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_ligne_voiture` FOREIGN KEY (`id_voiture`) REFERENCES `voiture` (`id_voiture`);
+
+--
+-- Contraintes pour la table `negociation`
+--
+ALTER TABLE `negociation`
+  ADD CONSTRAINT `fk_negociation_acheteur` FOREIGN KEY (`id_acheteur`) REFERENCES `utilisateur` (`id_utilisateur`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_negociation_vendeur` FOREIGN KEY (`id_vendeur`) REFERENCES `utilisateur` (`id_utilisateur`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_negociation_voiture` FOREIGN KEY (`id_voiture`) REFERENCES `voiture` (`id_voiture`) ON DELETE CASCADE;
+
+--
+-- Contraintes pour la table `notification`
+--
+ALTER TABLE `notification`
+  ADD CONSTRAINT `fk_notification_utilisateur` FOREIGN KEY (`id_utilisateur`) REFERENCES `utilisateur` (`id_utilisateur`) ON DELETE CASCADE;
+
+--
+-- Contraintes pour la table `offre_enchere`
+--
+ALTER TABLE `offre_enchere`
+  ADD CONSTRAINT `fk_offre_enchere_acheteur` FOREIGN KEY (`id_acheteur`) REFERENCES `utilisateur` (`id_utilisateur`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_offre_enchere_enchere` FOREIGN KEY (`id_enchere`) REFERENCES `enchere` (`id_enchere`) ON DELETE CASCADE;
+
+--
+-- Contraintes pour la table `panier`
+--
+ALTER TABLE `panier`
+  ADD CONSTRAINT `fk_panier_utilisateur` FOREIGN KEY (`id_utilisateur`) REFERENCES `utilisateur` (`id_utilisateur`);
+
+--
+-- Contraintes pour la table `utilisateur`
+--
+ALTER TABLE `utilisateur`
+  ADD CONSTRAINT `fk_utilisateur_role` FOREIGN KEY (`id_role`) REFERENCES `role` (`id_role`);
+
+--
+-- Contraintes pour la table `voiture`
+--
+ALTER TABLE `voiture`
+  ADD CONSTRAINT `fk_voiture_marque` FOREIGN KEY (`id_marque`) REFERENCES `marque` (`id_marque`),
+  ADD CONSTRAINT `fk_voiture_vendeur` FOREIGN KEY (`id_vendeur`) REFERENCES `utilisateur` (`id_utilisateur`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
