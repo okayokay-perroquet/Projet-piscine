@@ -1,1 +1,482 @@
 
+/* page acheteur */
+.page-acheteur {
+    min-height: 100vh;
+    padding: 140px 7% 90px;
+    background:
+        radial-gradient(circle at top right, rgba(201, 164, 92, 0.12), transparent 32%),
+        #08090b;
+}
+
+/* haut du dashboard */
+.haut-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+    align-items: stretch;
+    margin-bottom: 42px;
+}
+
+.haut-dashboard h1 {
+    font-size: 52px;
+    line-height: 1.05;
+    margin-bottom: 18px;
+}
+
+.texte-dashboard {
+    color: #a7aab3;
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 750px;
+}
+
+/* carte profil */
+.carte-profil {
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(201, 164, 92, 0.28);
+    border-radius: 24px;
+    padding: 26px;
+    box-shadow: 0 22px 50px rgba(0, 0, 0, 0.25);
+}
+
+.carte-profil h2 {
+    font-size: 24px;
+    margin-bottom: 18px;
+}
+
+.carte-profil p {
+    color: #a7aab3;
+    margin-bottom: 10px;
+}
+
+.carte-profil strong {
+    color: #c9a45c;
+}
+
+/* cartes principales */
+.grille-dashboard {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 70px;
+}
+
+.carte-dashboard {
+    background: linear-gradient(145deg, #15171b, #101115);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 28px;
+    transition: 0.3s;
+}
+
+.carte-dashboard:hover {
+    transform: translateY(-6px);
+    border-color: rgba(201, 164, 92, 0.55);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+}
+
+.numero-dashboard {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: rgba(201, 164, 92, 0.12);
+    color: #c9a45c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 22px;
+    font-weight: bold;
+}
+
+.carte-dashboard h2 {
+    font-size: 23px;
+    margin-bottom: 12px;
+}
+
+.carte-dashboard p {
+    color: #a7aab3;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.carte-dashboard a {
+    color: #c9a45c;
+    font-weight: bold;
+}
+
+/* activité */
+.bloc-activite {
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.22);
+    border-radius: 26px;
+    padding: 32px;
+}
+
+.liste-activite {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.liste-activite div {
+    background: #08090b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 22px;
+}
+
+.liste-activite strong {
+    color: #c9a45c;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.liste-activite p {
+    color: #a7aab3;
+    line-height: 1.6;
+}
+
+/* message si pas connecte */
+.message-session {
+    background: #15171b;
+    border: 1px solid rgba(201, 164, 92, 0.25);
+    border-radius: 24px;
+    padding: 38px;
+    text-align: center;
+}
+
+.message-session h1 {
+    font-size: 38px;
+    margin-bottom: 14px;
+}
+
+.message-session p {
+    color: #a7aab3;
+    margin-bottom: 24px;
+}
+
+/* responsive */
+@media screen and (max-width: 1150px) {
+    .grille-dashboard {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .haut-dashboard {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: 750px) {
+    .grille-dashboard,
+    .liste-activite {
+        grid-template-columns: 1fr;
+    }
+
+    .haut-dashboard h1 {
+        font-size: 38px;
+    }
+}
+
+/* negociations acheteur */
+.zone-negociations-acheteur {
+    margin-top: 60px;
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.22);
+    border-radius: 26px;
+    padding: 32px;
+}
+
+#nombreNegociationsAcheteur {
+    color: #a7aab3;
+}
+
+.liste-negociations-acheteur {
+    display: grid;
+    gap: 22px;
+}
+
+.carte-negociation-acheteur {
+    display: grid;
+    grid-template-columns: 230px 1fr;
+    gap: 24px;
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    overflow: hidden;
+}
+
+.carte-negociation-acheteur img {
+    width: 100%;
+    height: 100%;
+    min-height: 210px;
+    object-fit: cover;
+}
+
+.carte-negociation-acheteur div {
+    padding: 22px;
+}
+
+.carte-negociation-acheteur h3 {
+    font-size: 24px;
+    margin: 14px 0 10px;
+}
+
+.carte-negociation-acheteur p {
+    color: #a7aab3;
+    margin-bottom: 8px;
+}
+
+.carte-negociation-acheteur strong {
+    color: #f5f3ef;
+}
+
+.carte-negociation-acheteur a {
+    display: inline-block;
+    color: #c9a45c;
+    font-weight: bold;
+    margin-top: 12px;
+}
+
+.badge-negociation {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.negociation-attente {
+    background: rgba(201, 164, 92, 0.14);
+    color: #c9a45c;
+}
+
+.negociation-acceptee {
+    background: rgba(54, 179, 126, 0.14);
+    color: #58d68d;
+}
+
+.negociation-refusee {
+    background: rgba(255, 80, 80, 0.14);
+    color: #ff7676;
+}
+
+.negociation-contre {
+    background: rgba(96, 165, 250, 0.14);
+    color: #93c5fd;
+}
+
+@media screen and (max-width: 700px) {
+    .carte-negociation-acheteur {
+        grid-template-columns: 1fr;
+    }
+
+    .carte-negociation-acheteur img {
+        height: 240px;
+    }
+}
+
+/* notifications acheteur */
+.zone-notifications-acheteur {
+    margin-top: 60px;
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.22);
+    border-radius: 26px;
+    padding: 32px;
+}
+
+.liste-notifications-acheteur {
+    display: grid;
+    gap: 14px;
+}
+
+.notification-acheteur {
+    background: #08090b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 18px;
+}
+
+.notification-acheteur strong {
+    color: #c9a45c;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.notification-acheteur p {
+    color: #f5f3ef;
+    margin-bottom: 8px;
+}
+
+.notification-acheteur span {
+    color: #777b85;
+    font-size: 13px;
+}
+
+/* reponse vendeur visible */
+.reponse-vendeur-acheteur {
+    margin: 14px 0;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(96, 165, 250, 0.10);
+    border: 1px solid rgba(96, 165, 250, 0.25);
+}
+
+.reponse-vendeur-acheteur strong {
+    color: #93c5fd;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.reponse-vendeur-acheteur p {
+    color: #f5f3ef;
+}
+
+/* actions acheteur sur une contre-proposition */
+.actions-negociation-acheteur {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+.actions-negociation-acheteur a {
+    color: #c9a45c;
+    font-weight: bold;
+}
+
+.bouton-accepter-negociation-acheteur,
+.bouton-contre-negociation-acheteur {
+    border-radius: 999px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.bouton-accepter-negociation-acheteur {
+    background: #c9a45c;
+    color: #08090b;
+    border: none;
+}
+
+.bouton-contre-negociation-acheteur {
+    background: transparent;
+    color: #93c5fd;
+    border: 1px solid rgba(147, 197, 253, 0.45);
+}
+
+/* notifications lues / non lues */
+.resume-notifications {
+    background: rgba(201, 164, 92, 0.12);
+    border: 1px solid rgba(201, 164, 92, 0.28);
+    color: #c9a45c;
+    border-radius: 16px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+}
+
+.resume-notifications strong {
+    color: #f5f3ef;
+}
+
+.notification-vendeur,
+.notification-acheteur {
+    position: relative;
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 14px;
+    transition: 0.25s ease;
+}
+
+.notification-non-lue {
+    background: linear-gradient(145deg, rgba(201, 164, 92, 0.16), rgba(17, 19, 24, 0.95));
+    border: 1px solid rgba(201, 164, 92, 0.42);
+    box-shadow: 0 0 25px rgba(201, 164, 92, 0.08);
+}
+
+.notification-non-lue::before {
+    content: "";
+    position: absolute;
+    top: 20px;
+    left: -5px;
+    width: 10px;
+    height: 10px;
+    background: #c9a45c;
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(201, 164, 92, 0.9);
+}
+
+.notification-lue {
+    background: #111318;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    opacity: 0.72;
+}
+
+.haut-notification {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+}
+
+.haut-notification strong {
+    color: #f5f3ef;
+}
+
+.badge-notification {
+    font-size: 11px;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.badge-non-lue {
+    background: rgba(201, 164, 92, 0.18);
+    color: #c9a45c;
+    border: 1px solid rgba(201, 164, 92, 0.35);
+}
+
+.badge-lue {
+    background: rgba(255, 255, 255, 0.08);
+    color: #a7aab3;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.notification-vendeur p,
+.notification-acheteur p {
+    color: #d7d7d7;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.bas-notification {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.bas-notification span {
+    color: #777b85;
+    font-size: 13px;
+}
+
+.bas-notification button {
+    background: transparent;
+    color: #c9a45c;
+    border: 1px solid rgba(201, 164, 92, 0.35);
+    border-radius: 999px;
+    padding: 8px 13px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.25s ease;
+}
+
+.bas-notification button:hover {
+    background: #c9a45c;
+    color: #08090b;
+}
