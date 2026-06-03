@@ -1,0 +1,242 @@
+<!DOCTYPE html> 
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panier - Mercato Nova Prestige</title>
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/panier.css?v=2">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+    <header class="en-tete">
+        <div class="logo">Mercato Nova <span>Prestige</span></div>
+
+        <nav class="navigation">
+            <a href="index.html">Accueil</a>
+            <a href="catalogue.html">Catalogue</a>
+            <a href="espace_acheteur.html">Espace acheteur</a>
+            <a href="../backend/deconnexion.php" class="lien-connexion">Déconnexion</a>
+        </nav>
+    </header>
+
+    <main class="page-panier">
+
+        <section class="haut-panier">
+            <div>
+                <p class="petit-titre">panier</p>
+                <h1>Panier & <span>Validation</span></h1>
+            </div>
+
+            <div class="etapes-panier">
+                <div class="etape-panier active">
+                    <span>1</span>
+                    <p>Panier</p>
+                </div>
+
+                <div class="trait-etape"></div>
+
+                <div class="etape-panier active">
+                    <span>2</span>
+                    <p>Informations</p>
+                </div>
+
+                <div class="trait-etape"></div>
+
+                <div class="etape-panier active">
+                    <span>3</span>
+                    <p>Paiement</p>
+                </div>
+
+                <div class="trait-etape"></div>
+
+                <div class="etape-panier active">
+                    <span>4</span>
+                    <p>Confirmation</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="layout-validation">
+
+            <div class="colonne-panier-gauche">
+
+                <section class="bloc-panier-premium">
+                    <div class="titre-bloc-panier">
+                        <p>Votre panier</p>
+                        <span id="nombrePanier">chargement...</span>
+                    </div>
+
+                    <div class="liste-panier" id="listePanier">
+                        <!-- panier avec javascript -->
+                    </div>
+
+                    <div class="ligne-garantie-panier">
+                        <span>Véhicule vérifié et authentifié par nos experts</span>
+                        <span>Garantie incluse</span>
+                    </div>
+                </section>
+
+                <section class="bloc-infos-acheteur">
+                    <h2>Informations acheteur</h2>
+
+                    <div class="formulaire-acheteur-panier">
+                        <div class="ligne-formulaire-panier">
+                            <div>
+                                <label for="prenomAcheteur">Prénom *</label>
+                                <input type="text" id="prenomAcheteur" placeholder="Jean">
+                            </div>
+
+                            <div>
+                                <label for="nomAcheteur">Nom *</label>
+                                <input type="text" id="nomAcheteur" placeholder="Dupont">
+                            </div>
+                        </div>
+
+                        <div class="ligne-formulaire-panier">
+                            <div>
+                                <label for="emailAcheteur">Email *</label>
+                                <input type="email" id="emailAcheteur" placeholder="jean.dupont@email.com">
+                            </div>
+
+                            <div>
+                                <label for="telephoneAcheteur">Téléphone *</label>
+                                <input type="text" id="telephoneAcheteur" placeholder="+33 6 12 34 56 78">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="adresseAcheteur">Adresse *</label>
+                            <input type="text" id="adresseAcheteur" placeholder="15 avenue des Champs-Élysées">
+                        </div>
+
+                        <div class="ligne-formulaire-panier trois-colonnes">
+                            <div>
+                                <label for="codePostalAcheteur">Code postal *</label>
+                                <input type="text" id="codePostalAcheteur" placeholder="75008">
+                            </div>
+
+                            <div>
+                                <label for="villeAcheteur">Ville *</label>
+                                <input type="text" id="villeAcheteur" placeholder="Paris">
+                            </div>
+
+                            <div>
+                                <label for="paysAcheteur">Pays *</label>
+                                <input type="text" id="paysAcheteur" value="France">
+                            </div>
+                        </div>
+
+                        <p class="note-securite-panier">
+                            Vos données sont utilisées uniquement pour le traitement simulé de votre commande.
+                        </p>
+                    </div>
+                </section>
+
+                <a href="catalogue.html" class="continuer-achats">
+                    ← Continuer mes achats
+                </a>
+
+            </div>
+
+            <aside class="colonne-panier-droite">
+
+                <section class="bloc-recap-premium">
+                    <h2>Récapitulatif de la commande</h2>
+
+                    <div class="ligne-recap">
+                        <span>Sous-total</span>
+                        <strong id="recapSousTotal">0 €</strong>
+                    </div>
+
+                    <div class="ligne-recap">
+                        <span>Frais de mise en relation</span>
+                        <strong id="recapFrais">0 €</strong>
+                    </div>
+
+                    <div class="ligne-recap">
+                        <span>TVA sur frais 20%</span>
+                        <strong id="recapTva">0 €</strong>
+                    </div>
+
+                    <div class="ligne-recap">
+                        <span>Garantie Prestige incluse</span>
+                        <strong>0,00 €</strong>
+                    </div>
+
+                    <div class="separateur-recap"></div>
+
+                    <div class="ligne-total">
+                        <div>
+                            <span>Total TTC</span>
+                            <p>Toutes taxes et frais inclus</p>
+                        </div>
+
+                        <strong id="totalPanier">0 €</strong>
+                    </div>
+                </section>
+
+                <section class="bloc-paiement-premium">
+                    <div class="titre-paiement">
+                        <h2>Paiement simulé</h2>
+
+                        <div class="badges-cartes">
+                            <span>VISA</span>
+                            <span>MC</span>
+                            <span>Apple Pay</span>
+                        </div>
+                    </div>
+
+                    <p class="texte-paiement">
+                        Paiement 100% simulé pour le projet pédagogique.
+                    </p>
+
+                    <div class="formulaire-paiement-panier">
+                        <div>
+                            <label for="nomCarte">Nom du titulaire *</label>
+                            <input type="text" id="nomCarte" placeholder="Jean Dupont">
+                        </div>
+
+                        <div>
+                            <label for="numeroCarte">Numéro de carte *</label>
+                            <input type="text" id="numeroCarte" maxlength="19" placeholder="1234 5678 9012 3456">
+                        </div>
+
+                        <div class="ligne-formulaire-panier">
+                            <div>
+                                <label for="expirationCarte">Expiration *</label>
+                                <input type="text" id="expirationCarte" maxlength="5" placeholder="MM/AA">
+                            </div>
+
+                            <div>
+                                <label for="cvvCarte">CVV *</label>
+                                <input type="text" id="cvvCarte" maxlength="3" placeholder="123">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="boutonValiderCommande" class="bouton bouton-principal bouton-validation-premium">
+                        Valider la transaction
+                    </button>
+
+                    <p class="note-paiement-final">
+                        Aucune information bancaire n’est enregistrée.
+                    </p>
+                </section>
+
+            </aside>
+
+        </section>
+
+    </main>
+
+    <footer class="pied-page">
+        <p>© 2026 Mercato Nova Prestige</p>
+        <p>Panier connecté à MySQL</p>
+    </footer>
+
+    <script src="js/panier.js?v=4"></script>
+</body>
+</html>
