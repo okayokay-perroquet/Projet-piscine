@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Mercato Nova Prestige</title>
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/connexion.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+    <header class="en-tete">
+        <div class="logo">Mercato Nova <span>Prestige</span></div>
+
+        <nav class="navigation">
+            <a href="index.html">Accueil</a>
+            <a href="catalogue.html">Catalogue</a>
+            <a href="fiche_voiture.html">Fiche voiture</a>
+            <a href="espace_vendeur.html">Vendre</a>
+            <a href="connexion.html" class="lien-connexion">Connexion</a>
+        </nav>
+    </header>
+
+    <main class="page-connexion">
+
+        <section class="intro-connexion">
+            <p class="petit-titre">espace membre</p>
+            <h1>Connectez-vous à votre espace prestige</h1>
+            <p>
+                Achetez, vendez, enchérissez ou négociez directement depuis votre espace personnel.
+            </p>
+        </section>
+
+        <section class="zone-formulaires">
+
+            <!-- formulaire connexion -->
+            <div class="carte-formulaire">
+                <h2>Connexion</h2>
+                <p class="texte-formulaire">Accédez à votre compte existant.</p>
+
+                <form id="formulaireConnexion" onsubmit="return false;">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+
+                    <label for="mot_de_passe">Mot de passe</label>
+                    <input type="password" id="mot_de_passe" name="mot_de_passe" required>
+
+                    <button type="button" class="bouton bouton-principal" onclick="connecterUtilisateur()">
+                        Se connecter
+                    </button>
+
+                    <div id="messageConnexion"></div>
+                </form>
+
+                <div class="aide-test">
+                    <p>Compte test acheteur : acheteur@test.com / test123</p>
+                    <p>Compte test vendeur : vendeur@test.com / test123</p>
+                    <p>Compte test admin : admin@test.com / test123</p>
+                </div>
+            </div>
+
+            <!-- formulaire inscription -->
+            <div class="carte-formulaire">
+                <h2>Créer un compte</h2>
+                <p class="texte-formulaire">Inscrivez-vous comme acheteur ou vendeur.</p>
+
+                <form action="../backend/inscription.php" method="POST">
+                    <div class="ligne-formulaire">
+                        <div>
+                            <label for="prenom">Prénom</label>
+                            <input type="text" id="prenom" name="prenom" required>
+                        </div>
+
+                        <div>
+                            <label for="nom">Nom</label>
+                            <input type="text" id="nom" name="nom" required>
+                        </div>
+                    </div>
+
+                    <label for="email_inscription">Email</label>
+                    <input type="email" id="email_inscription" name="email" required>
+
+                    <label for="telephone">Téléphone</label>
+                    <input type="text" id="telephone" name="telephone" placeholder="ex : 0600000000">
+
+                    <label for="mot_de_passe_inscription">Mot de passe</label>
+                    <input type="password" id="mot_de_passe_inscription" name="mot_de_passe" required>
+
+                    <label for="role">Type de compte</label>
+                    <select id="role" name="role" required>
+                        <option value="acheteur">Acheteur</option>
+                        <option value="vendeur">Vendeur</option>
+                    </select>
+
+                    <button type="submit" class="bouton bouton-principal">
+                        Créer mon compte
+                    </button>
+                </form>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="pied-page">
+        <p>© 2026 Mercato Nova Prestige</p>
+        <p>Connexion et inscription reliées à MySQL</p>
+    </footer>
+
+    <script>
+        function connecterUtilisateur() {
+            const champEmail = document.getElementById("email");
+            const champMotDePasse = document.getElementById("mot_de_passe");
+
+            if (!champEmail || !champMotDePasse) {
+                alert("formulaire de connexion introuvable");
+                return;
+            }
+
+            const email = champEmail.value.trim();
+            const motDePasse = champMotDePasse.value.trim();
+
+            if (email === "" || motDePasse === "") {
+                afficherMessageConnexion("merci de remplir tous les champs", "erreur");
+                return;
+            }
+
+            const donnees = new FormData();
+            donnees.append("email", email);
+            donnees.append("mot_de_passe", motDePasse);
+
+            fetch("../backend/connexion.php", {
+                method: "POST",
+                body: donnees
+            })
+                .then(function(reponse) {
+                    return reponse.json();
+                })
+                .then(function(resultat) {
+                    console.log("connexion :", resultat);
+
+                    if (resultat.succes === true) {
+                        afficherMessageConnexion("connexion réussie, redirection...", "succes");
+
+                        setTimeout(function() {
+                            if (resultat.role === "admin") {
+                                window.location.href = "administration.html";
+                            } else if (resultat.role === "vendeur") {
+                                window.location.href = "espace_vendeur.html";
+                            } else if (resultat.role === "acheteur") {
+                                window.location.href = "espace_acheteur.html";
+                            } else {
+                                window.location.href = "index.html";
+                            }
+                        }, 400);
+
+                        return;
+                    }
+
+                    afficherMessageConnexion(resultat.message || "connexion refusée", "erreur");
+                })
+                .catch(function(erreur) {
+                    console.log("erreur connexion :", erreur);
+                    afficherMessageConnexion("erreur technique lors de la connexion", "erreur");
+                });
+        }
+
+        function afficherMessageConnexion(message, type) {
+            const zoneMessage = document.getElementById("messageConnexion");
+
+            if (!zoneMessage) {
+                alert(message);
+                return;
+            }
+
+            if (type === "succes") {
+                zoneMessage.innerHTML = `
+                    <div class="message-succes">
+                        ${message}
+                    </div>
+                `;
+            } else {
+                zoneMessage.innerHTML = `
+                    <div class="message-erreur">
+                        ${message}
+                    </div>
+                `;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const formulaireConnexion = document.getElementById("formulaireConnexion");
+
+            if (formulaireConnexion) {
+                formulaireConnexion.addEventListener("submit", function(evenement) {
+                    evenement.preventDefault();
+                    connecterUtilisateur();
+                    return false;
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
