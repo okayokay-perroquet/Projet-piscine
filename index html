@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercato Nova Prestige</title>
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/accueil.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+    <header class="en-tete">
+        <div class="logo">Mercato Nova <span>Prestige</span></div>
+
+        <nav class="navigation">
+            <a href="index.html">Accueil</a>
+            <a href="catalogue.html">Catalogue</a>
+            <a href="fiche_voiture.html">Fiche voiture</a>
+            <a href="espace_vendeur.html">Vendre</a>
+            <a href="connexion.html" class="lien-connexion">Connexion</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="contenu-hero">
+            <p class="petit-titre">marketplace automobile premium</p>
+
+            <h1>L’excellence automobile, au-delà du simple achat.</h1>
+
+            <p class="texte-hero">
+                Découvrez une sélection de véhicules de luxe, sportifs et rares.
+                Achetez immédiatement, participez à une enchère ou négociez directement avec un vendeur.
+            </p>
+
+            <div class="boutons-hero">
+                <a href="catalogue.html" class="bouton bouton-principal">Explorer le catalogue</a>
+                <a href="catalogue.html" class="bouton bouton-secondaire">Voir les enchères</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="haut-section">
+            <div>
+                <p class="petit-titre">selection exclusive</p>
+                <h2>Véhicules mis en avant</h2>
+            </div>
+
+            <a href="catalogue.html" class="lien-dore">Tout voir</a>
+        </div>
+
+        <div class="grille-voitures">
+
+            <article class="carte-voiture">
+                <img src="images/voitures/ferrari_488.png" alt="Ferrari 488 GTB">
+                <div class="infos-voiture">
+                    <span class="badge">achat immédiat</span>
+                    <h3>Ferrari 488 GTB</h3>
+                    <p>2018 • 24 500 km • 670 ch</p>
+                    <div class="bas-carte">
+                        <strong>245 000 €</strong>
+                        <a href="fiche_voiture.html?id=1">Voir</a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="carte-voiture">
+                <img src="images/voitures/porsche_911.png" alt="Porsche 911 Turbo S">
+                <div class="infos-voiture">
+                    <span class="badge badge-negociation">négociation</span>
+                    <h3>Porsche 911 Turbo S</h3>
+                    <p>2021 • 18 500 km • 650 ch</p>
+                    <div class="bas-carte">
+                        <strong>219 900 €</strong>
+                        <a href="fiche_voiture.html?id=2">Voir</a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="carte-voiture">
+                <img src="images/voitures/lamborghini_huracan.png" alt="Lamborghini Huracan EVO">
+                <div class="infos-voiture">
+                    <span class="badge badge-enchere">enchère</span>
+                    <h3>Lamborghini Huracan EVO</h3>
+                    <p>2020 • 12 000 km • 640 ch</p>
+                    <div class="bas-carte">
+                        <strong>236 000 €</strong>
+                        <a href="fiche_voiture.html?id=3">Voir</a>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="haut-section">
+            <div>
+                <p class="petit-titre">fonctionnement</p>
+                <h2>Trois façons d’acquérir un véhicule</h2>
+            </div>
+        </div>
+
+        <div class="grille-modes">
+            <div class="carte-mode">
+                <div class="icone-mode">01</div>
+                <h3>Achat immédiat</h3>
+                <p>Le véhicule est acheté directement au prix affiché par le vendeur.</p>
+            </div>
+
+            <div class="carte-mode">
+                <div class="icone-mode">02</div>
+                <h3>Enchère</h3>
+                <p>Les acheteurs proposent un montant jusqu’à la fin de l’enchère.</p>
+            </div>
+
+            <div class="carte-mode">
+                <div class="icone-mode">03</div>
+                <h3>Négociation</h3>
+                <p>L’acheteur propose un prix et le vendeur peut accepter, refuser ou contre-proposer.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="bandeau">
+        <div>
+            <strong>Annonces vérifiées</strong>
+            <p>Chaque véhicule est validé avant publication.</p>
+        </div>
+
+        <div>
+            <strong>Expérience premium</strong>
+            <p>Une interface sombre, élégante et pensée pour le luxe.</p>
+        </div>
+
+        <div>
+            <strong>Paiement simulé</strong>
+            <p>Transaction sécurisée dans le cadre du projet pédagogique.</p>
+        </div>
+    </section>
+
+    <footer class="pied-page">
+        <p>© 2026 Mercato Nova Prestige</p>
+        <p>Projet web dynamique — plateforme automobile premium</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
