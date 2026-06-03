@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace vendeur - Mercato Nova Prestige</title>
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/espace_vendeur.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+    <header class="en-tete">
+        <div class="logo">Mercato Nova <span>Prestige</span></div>
+
+        <nav class="navigation">
+            <a href="index.html">Accueil</a>
+            <a href="catalogue.html">Catalogue</a>
+            <a href="espace_vendeur.html">Vendre</a>
+            <a href="../backend/deconnexion.php" class="lien-connexion">Déconnexion</a>
+        </nav>
+    </header>
+
+    <main class="page-vendeur">
+
+        <section class="haut-vendeur">
+            <div>
+                <p class="petit-titre">espace vendeur</p>
+                <h1 id="messageBienvenue">Publier une annonce</h1>
+                <p>
+                    Ajoutez un véhicule de luxe à la plateforme. L’annonce sera ensuite placée en attente de validation par l’administrateur.
+                </p>
+            </div>
+
+            <div class="carte-profil-vendeur" id="carteProfilVendeur">
+                <!-- infos vendeur avec javascript -->
+            </div>
+        </section>
+
+        <section class="zone-ajout-annonce">
+
+            <div class="intro-formulaire-vendeur">
+                <p class="petit-titre">nouvelle annonce</p>
+                <h2>Informations du véhicule</h2>
+                <p>
+                    Remplissez les informations principales. Le véhicule sera enregistré dans la base MySQL.
+                </p>
+
+                <div id="messageRetour"></div>
+            </div>
+
+            <form class="formulaire-annonce" action="../backend/ajouter_voiture.php" method="POST" enctype="multipart/form-data">
+
+                <div class="ligne-formulaire">
+                    <div>
+                        <label for="id_marque">Marque</label>
+                        <select id="id_marque" name="id_marque" required>
+                            <option value="1">Ferrari</option>
+                            <option value="2">Porsche</option>
+                            <option value="3">Lamborghini</option>
+                            <option value="4">Mercedes-AMG / Brabus</option>
+                            <option value="5">Aston Martin</option>
+                            <option value="6">Bentley</option>
+                            <option value="autre">Autre marque</option>
+                        </select>
+                    </div>
+
+                    <div id="blocMarquePersonnalisee">
+                        <label for="marque_personnalisee">Si autre marque</label>
+                        <input 
+                            type="text" 
+                            id="marque_personnalisee" 
+                            name="marque_personnalisee" 
+                            placeholder="ex : Bugatti, McLaren, Rolls-Royce"
+                        >
+                    </div>
+                </div>
+
+                <div class="ligne-formulaire">
+                    <div>
+                        <label for="modele">Modèle</label>
+                        <input type="text" id="modele" name="modele" placeholder="ex : 911 GT3 RS" required>
+                    </div>
+
+                    <div>
+                        <label for="annee">Année</label>
+                        <input type="number" id="annee" name="annee" placeholder="ex : 2023" required>
+                    </div>
+                </div>
+
+                <div class="ligne-formulaire">
+                    <div>
+                        <label for="kilometrage">Kilométrage</label>
+                        <input type="number" id="kilometrage" name="kilometrage" placeholder="ex : 12000" required>
+                    </div>
+
+                    <div>
+                        <label for="puissance">Puissance</label>
+                        <input type="number" id="puissance" name="puissance" placeholder="ex : 670">
+                    </div>
+                </div>
+
+                <div class="ligne-formulaire">
+                    <div>
+                        <label for="prix">Prix de départ</label>
+                        <input type="number" id="prix" name="prix" placeholder="ex : 245000" required>
+                    </div>
+
+                    <div>
+                        <label for="etat">État</label>
+                        <select id="etat" name="etat">
+                            <option value="excellent">Excellent</option>
+                            <option value="tres bon">Très bon</option>
+                            <option value="bon">Bon</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="ligne-formulaire">
+                    <div>
+                        <label for="carburant">Carburant</label>
+                        <select id="carburant" name="carburant">
+                            <option value="essence">Essence</option>
+                            <option value="hybride">Hybride</option>
+                            <option value="electrique">Électrique</option>
+                            <option value="diesel">Diesel</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="transmission">Transmission</label>
+                        <select id="transmission" name="transmission">
+                            <option value="automatique">Automatique</option>
+                            <option value="manuelle">Manuelle</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="ligne-formulaire">
+                    <div>
+                        <label for="couleur_exterieure">Couleur extérieure</label>
+                        <input type="text" id="couleur_exterieure" name="couleur_exterieure" placeholder="ex : rouge">
+                    </div>
+
+                    <div>
+                        <label for="couleur_interieure">Couleur intérieure</label>
+                        <input type="text" id="couleur_interieure" name="couleur_interieure" placeholder="ex : cuir noir">
+                    </div>
+                </div>
+
+                <div class="ligne-formulaire">
+                    <div>
+                        <label for="mode_vente">Mode de vente</label>
+                        <select id="mode_vente" name="mode_vente" required>
+                            <option value="achat_immediat">Achat immédiat</option>
+                            <option value="enchere">Enchère</option>
+                            <option value="negociation">Négociation</option>
+                        </select>
+                    </div>
+
+                    <div id="blocDureeEnchere" style="display: none;">
+                        <label for="duree_enchere_minutes">Durée de l’enchère</label>
+                        <select id="duree_enchere_minutes" name="duree_enchere_minutes">
+                            <option value="1">1 minute - test prof</option>
+                            <option value="5">5 minutes</option>
+                            <option value="10" selected>10 minutes</option>
+                            <option value="30">30 minutes</option>
+                            <option value="60">1 heure</option>
+                            <option value="1440">24 heures</option>
+                            <option value="4320">3 jours</option>
+                            <option value="10080">7 jours</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bloc-upload-images">
+                    <label for="images_voiture">Images du véhicule</label>
+                    <input type="file" id="images_voiture" name="images_voiture[]" accept="image/png, image/jpeg, image/jpg, image/webp" multiple required>
+
+                    <p class="aide-upload">
+                        Vous pouvez importer jusqu’à 6 images. La première image sera utilisée comme image principale par défaut.
+                    </p>
+
+                    <label for="image_principale_index">Image principale</label>
+                    <select id="image_principale_index" name="image_principale_index">
+                        <option value="0">Image 1</option>
+                    </select>
+
+                    <div class="preview-images-upload" id="previewImagesUpload">
+                        <!-- apercu images -->
+                    </div>
+                </div>
+
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="5" placeholder="décrivez le véhicule, ses options, son état, son historique..." required></textarea>
+
+                <button type="submit" class="bouton bouton-principal">Publier l’annonce</button>
+            </form>
+
+        </section>
+
+        <section class="zone-mes-annonces">
+            <div class="haut-section">
+                <div>
+                    <p class="petit-titre">mes annonces</p>
+                    <h2>Suivi des véhicules publiés</h2>
+                </div>
+
+                <p id="nombreMesAnnonces">chargement...</p>
+            </div>
+
+            <div class="liste-mes-annonces" id="listeMesAnnonces">
+                <!-- annonces vendeur avec javascript -->
+            </div>
+        </section>
+
+        <section class="zone-negociations-vendeur">
+            <div class="haut-section">
+                <div>
+                    <p class="petit-titre">négociations reçues</p>
+                    <h2>Offres des acheteurs</h2>
+                </div>
+
+                <p id="nombreNegociationsVendeur">chargement...</p>
+            </div>
+
+            <div class="liste-negociations-vendeur" id="listeNegociationsVendeur">
+                <!-- negociations vendeur avec javascript -->
+            </div>
+        </section>
+
+        <section class="zone-notifications-vendeur">
+            <div class="haut-section">
+                <div>
+                    <p class="petit-titre">notifications</p>
+                    <h2>Dernières informations</h2>
+                </div>
+            </div>
+
+            <div class="liste-notifications" id="listeNotifications">
+                <!-- notifications avec javascript -->
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="pied-page">
+        <p>© 2026 Mercato Nova Prestige</p>
+        <p>Espace vendeur connecté à MySQL</p>
+    </footer>
+
+    <script src="js/espace_vendeur.js"></script>
+</body>
+</html>
