@@ -1,0 +1,61 @@
+<?php
+require_once "connexion_bdd.php";
+
+// on recupere les donnees du formulaire
+$prenom = trim($_POST["prenom"]);
+$nom = trim($_POST["nom"]);
+$email = trim($_POST["email"]);
+$telephone = trim($_POST["telephone"]);
+$mot_de_passe = $_POST["mot_de_passe"];
+$role = $_POST["role"];
+
+// on verifie les champs obligatoires
+if (empty($prenom) || empty($nom) || empty($email) || empty($mot_de_passe) || empty($role)) {
+    die("tous les champs obligatoires doivent etre remplis");
+}
+
+// on verifie le format de l'email
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    die("email invalide");
+}
+
+// on transforme le role en id
+if ($role === "acheteur") {
+    $id_role = 1;
+} elseif ($role === "vendeur") {
+    $id_role = 2;
+} else {
+    die("role invalide");
+}
+
+// on verifie si l'email existe deja
+$requete_verification = "SELECT id_utilisateur FROM UTILISATEUR WHERE email = ?";
+$preparation = mysqli_prepare($connexion, $requete_verification);
+mysqli_stmt_bind_param($preparation, "s", $email);
+mysqli_stmt_execute($preparation);
+$resultat = mysqli_stmt_get_result($preparation);
+
+if (mysqli_num_rows($resultat) > 0) {
+    die("cet email est deja utilise");
+}
+
+// on chiffre le mot de passe
+$mot_de_passe_hash = password_hash($mot_de_passe, PASSWORD_DEFAULT);
+
+// on ajoute l'utilisateur dans la base
+$requete = "
+    INSERT INTO UTILISATEUR 
+    (nom, prenom, email, mot_de_passe, telephone, statut_compte, id_role)
+    VALUES (?, ?, ?, ?, ?, 'actif', ?)
+";
+
+$preparation = mysqli_prepare($connexion, $requete);
+mysqli_stmt_bind_param($preparation, "sssssi", $nom, $prenom, $email, $mot_de_passe_hash, $telephone, $id_role);
+
+if (mysqli_stmt_execute($preparation)) {
+    header("Location: ../frontend/connexion.html");
+    exit;
+} else {
+    die("erreur lors de la creation du compte");
+}
+?>
