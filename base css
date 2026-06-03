@@ -1,0 +1,219 @@
+/* base du site */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #08090b;
+    color: #f5f3ef;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+img {
+    max-width: 100%;
+}
+
+/* en tete */
+.en-tete {
+    width: 100%;
+    height: 78px;
+    padding: 0 7%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(8, 9, 11, 0.92);
+    border-bottom: 1px solid rgba(201, 164, 92, 0.22);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    backdrop-filter: blur(12px);
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.logo span {
+    color: #c9a45c;
+}
+
+.navigation {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.navigation a {
+    font-size: 14px;
+    color: #c9c9c9;
+    transition: 0.3s;
+}
+
+.navigation a:hover {
+    color: #c9a45c;
+}
+
+.lien-connexion {
+    padding: 11px 18px;
+    border: 1px solid #c9a45c;
+    border-radius: 999px;
+    color: #c9a45c !important;
+}
+
+/* petits titres */
+.petit-titre {
+    color: #c9a45c;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+}
+
+/* boutons */
+.bouton {
+    display: inline-block;
+    padding: 15px 24px;
+    border-radius: 999px;
+    font-weight: bold;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.bouton-principal {
+    background: #c9a45c;
+    color: #08090b;
+}
+
+.bouton-principal:hover {
+    background: #e0bd70;
+}
+
+.bouton-secondaire {
+    border: 1px solid rgba(245, 243, 239, 0.35);
+    color: #f5f3ef;
+}
+
+.bouton-secondaire:hover {
+    border-color: #c9a45c;
+    color: #c9a45c;
+}
+
+/* sections communes */
+.section {
+    padding: 90px 7%;
+}
+
+.haut-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    margin-bottom: 34px;
+}
+
+.haut-section h2 {
+    font-size: 36px;
+}
+
+.lien-dore {
+    color: #c9a45c;
+    font-size: 14px;
+}
+
+/* cartes voitures */
+.grille-voitures {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+}
+
+.carte-voiture {
+    background: #15171b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.carte-voiture:hover {
+    transform: translateY(-8px);
+    border-color: rgba(201, 164, 92, 0.55);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+}
+
+.carte-voiture img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    display: block;
+}
+
+.infos-voiture {
+    padding: 22px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(201, 164, 92, 0.14);
+    color: #c9a45c;
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+
+.badge-enchere {
+    color: #ffcf6b;
+}
+
+.badge-negociation {
+    color: #b8d5ff;
+}
+
+.infos-voiture h3 {
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
+.infos-voiture p {
+    color: #a7aab3;
+    font-size: 14px;
+    margin-bottom: 18px;
+}
+
+.bas-carte {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bas-carte strong {
+    color: #f5f3ef;
+    font-size: 18px;
+}
+
+.bas-carte a {
+    color: #c9a45c;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* pied de page */
+.pied-page {
+    padding: 28px 7%;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #a7aab3;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
