@@ -1,1 +1,137 @@
 
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    if (!isset($_GET["id_voiture"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "id voiture manquant"
+        ]);
+        exit;
+    }
+
+    $id_voiture = intval($_GET["id_voiture"]);
+
+    $requete = "
+        SELECT 
+            e.id_enchere,
+            e.prix_depart,
+            e.prix_actuel,
+            e.date_debut,
+            e.date_fin,
+            e.statut_enchere,
+            e.id_voiture,
+            e.id_meilleur_acheteur,
+            e.notification_expiration_envoyee,
+            TIMESTAMPDIFF(SECOND, NOW(), e.date_fin) AS temps_restant_secondes,
+            u.prenom AS prenom_meilleur,
+            u.nom AS nom_meilleur,
+            v.modele,
+            v.id_vendeur,
+            m.nom_marque
+        FROM ENCHERE e
+        INNER JOIN VOITURE v ON e.id_voiture = v.id_voiture
+        INNER JOIN MARQUE m ON v.id_marque = m.id_marque
+        LEFT JOIN UTILISATEUR u ON e.id_meilleur_acheteur = u.id_utilisateur
+        WHERE e.id_voiture = ?
+        LIMIT 1
+    ";
+
+    $preparation = mysqli_prepare($connexion, $requete);
+    mysqli_stmt_bind_param($preparation, "i", $id_voiture);
+    mysqli_stmt_execute($preparation);
+
+    $resultat = mysqli_stmt_get_result($preparation);
+
+    if (mysqli_num_rows($resultat) === 0) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "enchere introuvable"
+        ]);
+        exit;
+    }
+
+    $enchere = mysqli_fetch_assoc($resultat);
+    $temps_restant = intval($enchere["temps_restant_secondes"]);
+
+    // si le temps est fini, on termine l'enchere
+    if ($enchere["statut_enchere"] === "active" && $temps_restant <= 0) {
+        mysqli_begin_transaction($connexion);
+
+        $requete_update = "
+            UPDATE ENCHERE
+            SET statut_enchere = 'terminee'
+            WHERE id_enchere = ?
+        ";
+
+        $preparation_update = mysqli_prepare($connexion, $requete_update);
+        mysqli_stmt_bind_param($preparation_update, "i", $enchere["id_enchere"]);
+        mysqli_stmt_execute($preparation_update);
+
+        // notification acheteur gagnant une seule fois
+        if (
+            $enchere["id_meilleur_acheteur"] !== null &&
+            intval($enchere["notification_expiration_envoyee"]) === 0
+        ) {
+            $message_acheteur = "l'enchere sur " . $enchere["nom_marque"] . " " . $enchere["modele"] . " est terminee. Vous etes le meilleur encherisseur, la vente attend la confirmation de l'admin.";
+            $type_acheteur = "enchere_expiree";
+
+            $requete_notification_acheteur = "
+                INSERT INTO NOTIFICATION (message, type_notification, lu, id_utilisateur)
+                VALUES (?, ?, FALSE, ?)
+            ";
+
+            $preparation_notification_acheteur = mysqli_prepare($connexion, $requete_notification_acheteur);
+            mysqli_stmt_bind_param(
+                $preparation_notification_acheteur,
+                "ssi",
+                $message_acheteur,
+                $type_acheteur,
+                $enchere["id_meilleur_acheteur"]
+            );
+            mysqli_stmt_execute($preparation_notification_acheteur);
+
+            $requete_flag = "
+                UPDATE ENCHERE
+                SET notification_expiration_envoyee = 1
+                WHERE id_enchere = ?
+            ";
+
+            $preparation_flag = mysqli_prepare($connexion, $requete_flag);
+            mysqli_stmt_bind_param($preparation_flag, "i", $enchere["id_enchere"]);
+            mysqli_stmt_execute($preparation_flag);
+        }
+
+        mysqli_commit($connexion);
+
+        $enchere["statut_enchere"] = "terminee";
+        $enchere["notification_expiration_envoyee"] = 1;
+        $temps_restant = 0;
+    }
+
+    if ($temps_restant < 0) {
+        $temps_restant = 0;
+    }
+
+    echo json_encode([
+        "succes" => true,
+        "enchere" => $enchere,
+        "temps_restant_secondes" => $temps_restant
+    ]);
+    exit;
+
+} catch (Throwable $erreur) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur enchere : " . $erreur->getMessage()
+    ]);
+    exit;
+}
+?>
