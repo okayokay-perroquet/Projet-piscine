@@ -1,0 +1,126 @@
+<?php
+require_once "connexion_bdd.php";
+
+// on indique que la reponse sera en json
+header("Content-Type: application/json; charset=utf-8");
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    // on verifie si l'id existe dans l'url
+    if (!isset($_GET["id"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "id de voiture manquant"
+        ]);
+        exit;
+    }
+
+    // on securise l'id
+    $id_voiture = intval($_GET["id"]);
+
+    // requete pour recuperer les infos de la voiture avec l'image principale
+    $requete = "
+        SELECT 
+            v.id_voiture,
+            v.modele,
+            v.annee,
+            v.kilometrage,
+            v.puissance,
+            v.carburant,
+            v.transmission,
+            v.couleur_exterieure,
+            v.couleur_interieure,
+            v.etat,
+            v.prix,
+            v.description,
+            v.mode_vente,
+            v.statut_annonce,
+            v.date_publication,
+            m.nom_marque,
+            i.url_image,
+            u.nom AS nom_vendeur,
+            u.prenom AS prenom_vendeur,
+            u.email AS email_vendeur
+        FROM VOITURE v
+        INNER JOIN MARQUE m ON v.id_marque = m.id_marque
+        INNER JOIN UTILISATEUR u ON v.id_vendeur = u.id_utilisateur
+        LEFT JOIN IMAGE_VOITURE i 
+            ON v.id_voiture = i.id_voiture 
+            AND i.image_principale = 1
+        WHERE v.id_voiture = ?
+        LIMIT 1
+    ";
+
+    $preparation = mysqli_prepare($connexion, $requete);
+    mysqli_stmt_bind_param($preparation, "i", $id_voiture);
+    mysqli_stmt_execute($preparation);
+
+    $resultat = mysqli_stmt_get_result($preparation);
+
+    // si aucune voiture trouvee
+    if (mysqli_num_rows($resultat) === 0) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "voiture introuvable"
+        ]);
+        exit;
+    }
+
+    // on transforme la ligne en tableau
+    $voiture = mysqli_fetch_assoc($resultat);
+
+    // maintenant on recupere toutes les images de la voiture
+    $requete_images = "
+        SELECT 
+            id_image,
+            url_image,
+            image_principale,
+            id_voiture
+        FROM IMAGE_VOITURE
+        WHERE id_voiture = ?
+        ORDER BY image_principale DESC, id_image ASC
+    ";
+
+    $preparation_images = mysqli_prepare($connexion, $requete_images);
+    mysqli_stmt_bind_param($preparation_images, "i", $id_voiture);
+    mysqli_stmt_execute($preparation_images);
+
+    $resultat_images = mysqli_stmt_get_result($preparation_images);
+
+    $images = [];
+
+    while ($image = mysqli_fetch_assoc($resultat_images)) {
+        $images[] = $image;
+    }
+
+    // securite : si aucune image n'est trouvee, on garde quand meme l'image principale si elle existe
+    if (count($images) === 0 && !empty($voiture["url_image"])) {
+        $images[] = [
+            "id_image" => null,
+            "url_image" => $voiture["url_image"],
+            "image_principale" => 1,
+            "id_voiture" => $id_voiture
+        ];
+    }
+
+    // on ajoute les images directement dans la voiture
+    $voiture["images"] = $images;
+
+    // on renvoie la voiture + toutes les images
+    echo json_encode([
+        "succes" => true,
+        "voiture" => $voiture,
+        "images" => $images
+    ], JSON_UNESCAPED_UNICODE);
+
+    exit;
+
+} catch (Throwable $erreur) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur detail voiture : " . $erreur->getMessage()
+    ]);
+    exit;
+}
+?>
