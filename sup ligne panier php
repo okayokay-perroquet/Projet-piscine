@@ -1,1 +1,53 @@
 
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+// on verifie la connexion
+if (!isset($_SESSION["id_utilisateur"])) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "utilisateur non connecte"
+    ]);
+    exit;
+}
+
+// on verifie l'id de la ligne
+if (!isset($_POST["id_ligne_panier"])) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "id ligne manquant"
+    ]);
+    exit;
+}
+
+$id_utilisateur = $_SESSION["id_utilisateur"];
+$id_ligne_panier = intval($_POST["id_ligne_panier"]);
+
+// on supprime seulement si la ligne appartient au panier de l'utilisateur
+$requete = "
+    DELETE lp
+    FROM LIGNE_PANIER lp
+    INNER JOIN PANIER p ON lp.id_panier = p.id_panier
+    WHERE lp.id_ligne_panier = ?
+    AND p.id_utilisateur = ?
+";
+
+$preparation = mysqli_prepare($connexion, $requete);
+mysqli_stmt_bind_param($preparation, "ii", $id_ligne_panier, $id_utilisateur);
+
+if (mysqli_stmt_execute($preparation)) {
+    echo json_encode([
+        "succes" => true,
+        "message" => "ligne supprimee"
+    ]);
+} else {
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur suppression"
+    ]);
+}
+?>
