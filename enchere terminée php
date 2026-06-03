@@ -1,0 +1,76 @@
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    if (!isset($_SESSION["id_utilisateur"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "utilisateur non connecte"
+        ]);
+        exit;
+    }
+
+    if ($_SESSION["role"] !== "admin") {
+        echo json_encode([
+            "succes" => false,
+            "message" => "acces refuse"
+        ]);
+        exit;
+    }
+
+    $requete = "
+        SELECT 
+            e.id_enchere,
+            e.prix_depart,
+            e.prix_actuel,
+            e.date_debut,
+            e.date_fin,
+            e.statut_enchere,
+            e.id_voiture,
+            e.id_meilleur_acheteur,
+            v.modele,
+            v.statut_annonce,
+            m.nom_marque,
+            i.url_image,
+            vendeur.prenom AS prenom_vendeur,
+            vendeur.nom AS nom_vendeur,
+            acheteur.prenom AS prenom_acheteur,
+            acheteur.nom AS nom_acheteur
+        FROM ENCHERE e
+        INNER JOIN VOITURE v ON e.id_voiture = v.id_voiture
+        INNER JOIN MARQUE m ON v.id_marque = m.id_marque
+        INNER JOIN UTILISATEUR vendeur ON v.id_vendeur = vendeur.id_utilisateur
+        LEFT JOIN UTILISATEUR acheteur ON e.id_meilleur_acheteur = acheteur.id_utilisateur
+        LEFT JOIN IMAGE_VOITURE i ON v.id_voiture = i.id_voiture AND i.image_principale = 1
+        WHERE e.statut_enchere = 'terminee'
+        ORDER BY e.date_fin DESC
+    ";
+
+    $resultat = mysqli_query($connexion, $requete);
+
+    $encheres = [];
+
+    while ($ligne = mysqli_fetch_assoc($resultat)) {
+        $encheres[] = $ligne;
+    }
+
+    echo json_encode([
+        "succes" => true,
+        "encheres" => $encheres
+    ]);
+    exit;
+
+} catch (Throwable $erreur) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur admin encheres : " . $erreur->getMessage()
+    ]);
+    exit;
+}
+?>
