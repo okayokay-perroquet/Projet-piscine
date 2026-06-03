@@ -1,0 +1,134 @@
+// tableau qui va contenir les voitures de la base
+let voitures = [];
+
+// on attend que la page soit bien chargee
+document.addEventListener("DOMContentLoaded", function() {
+
+    // on recupere les voitures avec php
+    fetch("../backend/afficher_voitures.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.succes === true) {
+                voitures = donnees.voitures;
+                afficherVoitures(voitures);
+            } else {
+                afficherErreur();
+            }
+        })
+        .catch(function() {
+            afficherErreur();
+        });
+
+    // seul ce bouton applique les filtres
+    document.getElementById("boutonFiltrer").addEventListener("click", function() {
+        filtrerVoitures();
+    });
+});
+
+// on affiche les voitures dans le catalogue
+function afficherVoitures(liste) {
+    const zoneVoitures = document.getElementById("listeVoitures");
+    const nombreResultats = document.getElementById("nombreResultats");
+
+    zoneVoitures.innerHTML = "";
+    nombreResultats.textContent = liste.length + " véhicule(s) trouvé(s)";
+
+    if (liste.length === 0) {
+        zoneVoitures.innerHTML = "<p class='message-vide'>aucune voiture ne correspond aux filtres</p>";
+        return;
+    }
+
+    liste.forEach(function(voiture) {
+        const prixFormate = Number(voiture.prix).toLocaleString("fr-FR");
+        const kilometrageFormate = Number(voiture.kilometrage).toLocaleString("fr-FR");
+
+        let classeVendue = "";
+        let texteBadge = formaterModeVente(voiture.mode_vente);
+        let classeBadgeVendue = "";
+
+        if (voiture.statut_annonce === "vendue") {
+            classeVendue = "carte-vendue";
+            texteBadge = "vendue";
+            classeBadgeVendue = "badge-vendue";
+        }
+
+        zoneVoitures.innerHTML += `
+            <article class="carte-voiture ${classeVendue}">
+                <img src="${voiture.url_image}" alt="${voiture.nom_marque} ${voiture.modele}">
+
+                <div class="infos-voiture">
+                    <span class="badge ${classeBadge(voiture.mode_vente)} ${classeBadgeVendue}">
+                        ${texteBadge}
+                    </span>
+
+                    <h3>${voiture.nom_marque} ${voiture.modele}</h3>
+
+                    <p>${voiture.annee} • ${kilometrageFormate} km • ${voiture.puissance} ch</p>
+
+                    <div class="bas-carte">
+                        <strong>${prixFormate} €</strong>
+                        <a href="fiche_voiture.html?id=${voiture.id_voiture}">Voir</a>
+                    </div>
+                </div>
+            </article>
+        `;
+    });
+}
+
+// mode de vente propre
+function formaterModeVente(mode) {
+    if (mode === "achat_immediat") {
+        return "achat immédiat";
+    }
+
+    if (mode === "enchere") {
+        return "enchère";
+    }
+
+    if (mode === "negociation") {
+        return "négociation";
+    }
+
+    return mode;
+}
+
+// classe badge
+function classeBadge(mode) {
+    if (mode === "enchere") {
+        return "badge-enchere";
+    }
+
+    if (mode === "negociation") {
+        return "badge-negociation";
+    }
+
+    return "";
+}
+
+// on filtre uniquement au clic
+function filtrerVoitures() {
+    const recherche = document.getElementById("rechercheVoiture").value.toLowerCase();
+    const mode = document.getElementById("filtreMode").value;
+    const prixMax = document.getElementById("filtrePrix").value;
+
+    const voituresFiltrees = voitures.filter(function(voiture) {
+        const nomComplet = (voiture.nom_marque + " " + voiture.modele).toLowerCase();
+
+        const correspondRecherche = nomComplet.includes(recherche);
+        const correspondMode = mode === "" || voiture.mode_vente === mode;
+        const correspondPrix = prixMax === "" || Number(voiture.prix) <= Number(prixMax);
+
+        return correspondRecherche && correspondMode && correspondPrix;
+    });
+
+    afficherVoitures(voituresFiltrees);
+}
+
+// erreur
+function afficherErreur() {
+    document.getElementById("nombreResultats").textContent = "erreur";
+    document.getElementById("listeVoitures").innerHTML =
+        "<p class='message-vide'>erreur lors du chargement des voitures</p>";
+}
