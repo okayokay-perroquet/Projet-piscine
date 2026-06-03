@@ -1,0 +1,13 @@
+<?php
+session_start();
+
+// on vide la session
+session_unset();
+
+// on detruit la session
+session_destroy();
+
+// retour a la connexion
+header("Location: ../frontend/connexion.html");
+exit;
+?>
