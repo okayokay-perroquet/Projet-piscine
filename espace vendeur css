@@ -1,0 +1,629 @@
+/* page vendeur */
+.page-vendeur {
+    min-height: 100vh;
+    padding: 140px 7% 90px;
+    background:
+        radial-gradient(circle at top right, rgba(201, 164, 92, 0.12), transparent 32%),
+        #08090b;
+}
+
+/* haut de page */
+.haut-vendeur {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+    align-items: stretch;
+    margin-bottom: 46px;
+}
+
+.haut-vendeur h1 {
+    font-size: 52px;
+    line-height: 1.05;
+    margin-bottom: 18px;
+}
+
+.haut-vendeur p {
+    color: #a7aab3;
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 780px;
+}
+
+/* profil vendeur */
+.carte-profil-vendeur {
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(201, 164, 92, 0.28);
+    border-radius: 24px;
+    padding: 26px;
+    box-shadow: 0 22px 50px rgba(0, 0, 0, 0.25);
+}
+
+.carte-profil-vendeur h2 {
+    font-size: 24px;
+    margin-bottom: 18px;
+}
+
+.carte-profil-vendeur p {
+    color: #a7aab3;
+    margin-bottom: 10px;
+}
+
+.carte-profil-vendeur strong {
+    color: #c9a45c;
+}
+
+/* zone formulaire */
+.zone-ajout-annonce {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 34px;
+    align-items: start;
+}
+
+.intro-formulaire-vendeur {
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.22);
+    border-radius: 26px;
+    padding: 32px;
+}
+
+.intro-formulaire-vendeur h2 {
+    font-size: 34px;
+    margin-bottom: 16px;
+}
+
+.intro-formulaire-vendeur p {
+    color: #a7aab3;
+    line-height: 1.7;
+}
+
+/* messages */
+.message-succes {
+    margin-top: 24px;
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(54, 179, 126, 0.12);
+    color: #58d68d;
+    border: 1px solid rgba(54, 179, 126, 0.28);
+}
+
+.message-erreur {
+    margin-top: 24px;
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(255, 80, 80, 0.12);
+    color: #ff7676;
+    border: 1px solid rgba(255, 80, 80, 0.28);
+}
+
+/* formulaire */
+.formulaire-annonce {
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(201, 164, 92, 0.28);
+    border-radius: 26px;
+    padding: 32px;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+}
+
+.ligne-formulaire {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.formulaire-annonce label {
+    display: block;
+    margin: 18px 0 8px;
+    color: #c9a45c;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.formulaire-annonce input,
+.formulaire-annonce select,
+.formulaire-annonce textarea {
+    width: 100%;
+    padding: 14px 15px;
+    border-radius: 14px;
+    background: #08090b;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #f5f3ef;
+    outline: none;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.formulaire-annonce textarea {
+    resize: vertical;
+}
+
+.formulaire-annonce input:focus,
+.formulaire-annonce select:focus,
+.formulaire-annonce textarea:focus {
+    border-color: #c9a45c;
+}
+
+.formulaire-annonce button {
+    width: 100%;
+    border: none;
+    margin-top: 28px;
+    cursor: pointer;
+}
+
+/* mes annonces et notifications */
+.zone-mes-annonces,
+.zone-notifications-vendeur {
+    margin-top: 60px;
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.22);
+    border-radius: 26px;
+    padding: 32px;
+}
+
+#nombreMesAnnonces {
+    color: #a7aab3;
+}
+
+/* liste des annonces */
+.liste-mes-annonces {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.carte-annonce-vendeur {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    overflow: hidden;
+}
+
+.carte-annonce-vendeur img {
+    width: 100%;
+    height: 100%;
+    min-height: 190px;
+    object-fit: cover;
+}
+
+.contenu-annonce-vendeur {
+    padding: 22px;
+}
+
+.ligne-haut-annonce {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    color: #a7aab3;
+    font-size: 13px;
+}
+
+.badge-statut {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.statut-validee {
+    background: rgba(54, 179, 126, 0.14);
+    color: #58d68d;
+}
+
+.statut-refusee {
+    background: rgba(255, 80, 80, 0.14);
+    color: #ff7676;
+}
+
+.statut-attente {
+    background: rgba(201, 164, 92, 0.14);
+    color: #c9a45c;
+}
+
+.contenu-annonce-vendeur h3 {
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
+.contenu-annonce-vendeur p {
+    color: #a7aab3;
+    margin-bottom: 12px;
+}
+
+.contenu-annonce-vendeur strong {
+    color: #f5f3ef;
+    font-size: 18px;
+}
+
+.actions-annonce-vendeur {
+    margin-top: 18px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.actions-annonce-vendeur a {
+    color: #c9a45c;
+    font-weight: bold;
+}
+
+.actions-annonce-vendeur button {
+    background: transparent;
+    border: 1px solid rgba(255, 118, 118, 0.45);
+    color: #ff7676;
+    border-radius: 999px;
+    padding: 9px 14px;
+    cursor: pointer;
+}
+
+/* notifications */
+.liste-notifications {
+    display: grid;
+    gap: 14px;
+}
+
+.notification-vendeur {
+    background: #08090b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 18px;
+}
+
+.notification-vendeur strong {
+    color: #c9a45c;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.notification-vendeur p {
+    color: #f5f3ef;
+    margin-bottom: 8px;
+}
+
+.notification-vendeur span {
+    color: #777b85;
+    font-size: 13px;
+}
+
+.message-vide-vendeur {
+    color: #a7aab3;
+    background: #08090b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 22px;
+}
+
+/* responsive */
+@media screen and (max-width: 1100px) {
+    .haut-vendeur,
+    .zone-ajout-annonce {
+        grid-template-columns: 1fr;
+    }
+
+    .liste-mes-annonces {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    .ligne-formulaire {
+        grid-template-columns: 1fr;
+    }
+
+    .haut-vendeur h1 {
+        font-size: 38px;
+    }
+
+    .carte-annonce-vendeur {
+        grid-template-columns: 1fr;
+    }
+
+    .carte-annonce-vendeur img {
+        height: 230px;
+    }
+}
+
+/* negociations vendeur */
+.zone-negociations-vendeur {
+    margin-top: 60px;
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.22);
+    border-radius: 26px;
+    padding: 32px;
+}
+
+#nombreNegociationsVendeur {
+    color: #a7aab3;
+}
+
+.liste-negociations-vendeur {
+    display: grid;
+    gap: 22px;
+}
+
+.carte-negociation-vendeur {
+    display: grid;
+    grid-template-columns: 230px 1fr;
+    gap: 24px;
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    overflow: hidden;
+}
+
+.carte-negociation-vendeur img {
+    width: 100%;
+    height: 100%;
+    min-height: 210px;
+    object-fit: cover;
+}
+
+.contenu-negociation-vendeur {
+    padding: 22px;
+}
+
+.contenu-negociation-vendeur h3 {
+    font-size: 24px;
+    margin: 14px 0 10px;
+}
+
+.contenu-negociation-vendeur p {
+    color: #a7aab3;
+    margin-bottom: 8px;
+}
+
+.contenu-negociation-vendeur strong {
+    color: #f5f3ef;
+}
+
+.actions-negociation-vendeur {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+.actions-negociation-vendeur button {
+    border-radius: 999px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.bouton-accepter-negociation {
+    background: #c9a45c;
+    color: #08090b;
+    border: none;
+}
+
+.bouton-refuser-negociation {
+    background: transparent;
+    color: #ff7676;
+    border: 1px solid rgba(255, 118, 118, 0.45);
+}
+
+.bouton-contre-negociation {
+    background: transparent;
+    color: #93c5fd;
+    border: 1px solid rgba(147, 197, 253, 0.45);
+}
+
+.badge-negociation {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.negociation-attente {
+    background: rgba(201, 164, 92, 0.14);
+    color: #c9a45c;
+}
+
+.negociation-acceptee {
+    background: rgba(54, 179, 126, 0.14);
+    color: #58d68d;
+}
+
+.negociation-refusee {
+    background: rgba(255, 80, 80, 0.14);
+    color: #ff7676;
+}
+
+.negociation-contre {
+    background: rgba(96, 165, 250, 0.14);
+    color: #93c5fd;
+}
+
+@media screen and (max-width: 700px) {
+    .carte-negociation-vendeur {
+        grid-template-columns: 1fr;
+    }
+
+    .carte-negociation-vendeur img {
+        height: 240px;
+    }
+}
+
+/* upload images vendeur */
+.bloc-upload-images {
+    margin: 26px 0;
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.22);
+    border-radius: 22px;
+    padding: 24px;
+}
+
+.bloc-upload-images label {
+    display: block;
+    color: #c9a45c;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.bloc-upload-images input,
+.bloc-upload-images select {
+    width: 100%;
+    background: #08090b;
+    color: #f5f3ef;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 14px;
+    outline: none;
+    margin-bottom: 16px;
+}
+
+.aide-upload {
+    color: #a7aab3;
+    font-size: 14px;
+    margin-bottom: 18px;
+}
+
+.preview-images-upload {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 10px;
+}
+
+.image-preview-upload {
+    background: #08090b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.image-preview-upload img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+}
+
+.image-preview-upload span {
+    display: block;
+    color: #a7aab3;
+    font-size: 13px;
+    padding: 10px;
+}
+
+/* notifications lues / non lues */
+.resume-notifications {
+    background: rgba(201, 164, 92, 0.12);
+    border: 1px solid rgba(201, 164, 92, 0.28);
+    color: #c9a45c;
+    border-radius: 16px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+}
+
+.resume-notifications strong {
+    color: #f5f3ef;
+}
+
+.notification-vendeur,
+.notification-acheteur {
+    position: relative;
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 14px;
+    transition: 0.25s ease;
+}
+
+.notification-non-lue {
+    background: linear-gradient(145deg, rgba(201, 164, 92, 0.16), rgba(17, 19, 24, 0.95));
+    border: 1px solid rgba(201, 164, 92, 0.42);
+    box-shadow: 0 0 25px rgba(201, 164, 92, 0.08);
+}
+
+.notification-non-lue::before {
+    content: "";
+    position: absolute;
+    top: 20px;
+    left: -5px;
+    width: 10px;
+    height: 10px;
+    background: #c9a45c;
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(201, 164, 92, 0.9);
+}
+
+.notification-lue {
+    background: #111318;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    opacity: 0.72;
+}
+
+.haut-notification {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+}
+
+.haut-notification strong {
+    color: #f5f3ef;
+}
+
+.badge-notification {
+    font-size: 11px;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.badge-non-lue {
+    background: rgba(201, 164, 92, 0.18);
+    color: #c9a45c;
+    border: 1px solid rgba(201, 164, 92, 0.35);
+}
+
+.badge-lue {
+    background: rgba(255, 255, 255, 0.08);
+    color: #a7aab3;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.notification-vendeur p,
+.notification-acheteur p {
+    color: #d7d7d7;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.bas-notification {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.bas-notification span {
+    color: #777b85;
+    font-size: 13px;
+}
+
+.bas-notification button {
+    background: transparent;
+    color: #c9a45c;
+    border: 1px solid rgba(201, 164, 92, 0.35);
+    border-radius: 999px;
+    padding: 8px 13px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.25s ease;
+}
+
+.bas-notification button:hover {
+    background: #c9a45c;
+    color: #08090b;
+}
