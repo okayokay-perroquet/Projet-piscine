@@ -1,1 +1,673 @@
+let toutesLesAnnoncesAdmin = [];
+let filtreActuelAdmin = "toutes";
 
+// on attend que la page soit chargee
+document.addEventListener("DOMContentLoaded", function() {
+    verifierSessionAdmin();
+    chargerUtilisateursAdmin();
+    chargerToutesAnnoncesAdmin();
+    chargerEncheresTermineesAdmin();
+});
+
+// on verifie la session admin
+function verifierSessionAdmin() {
+    fetch("../backend/session_utilisateur.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.connecte === true) {
+                afficherAdmin(donnees.utilisateur);
+            } else {
+                afficherNonConnecteAdmin();
+            }
+        })
+        .catch(function() {
+            afficherNonConnecteAdmin();
+        });
+}
+
+// on affiche le profil admin
+function afficherAdmin(utilisateur) {
+    const carteAdmin = document.getElementById("carteAdmin");
+
+    if (!carteAdmin) {
+        return;
+    }
+
+    if (utilisateur.role !== "admin") {
+        document.querySelector(".page-admin").innerHTML = `
+            <div class="message-vide-admin">
+                accès refusé, cet espace est réservé à l’administrateur
+            </div>
+        `;
+        return;
+    }
+
+    carteAdmin.innerHTML = `
+        <h2>Profil admin</h2>
+        <p><strong>Nom :</strong> ${utilisateur.prenom} ${utilisateur.nom}</p>
+        <p><strong>Email :</strong> ${utilisateur.email}</p>
+        <p><strong>Rôle :</strong> ${utilisateur.role}</p>
+    `;
+}
+
+// si pas connecte
+function afficherNonConnecteAdmin() {
+    document.querySelector(".page-admin").innerHTML = `
+        <div class="message-vide-admin">
+            vous devez être connecté avec un compte administrateur
+            <br><br>
+            <a href="connexion.html" class="bouton bouton-principal">Se connecter</a>
+        </div>
+    `;
+}
+
+// on charge toutes les annonces admin
+function chargerToutesAnnoncesAdmin() {
+    fetch("../backend/afficher_toutes_annonces_admin.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.succes === true) {
+                toutesLesAnnoncesAdmin = donnees.annonces;
+                afficherAnnoncesAdmin(toutesLesAnnoncesAdmin);
+            } else {
+                afficherErreurAnnoncesAdmin();
+            }
+        })
+        .catch(function() {
+            afficherErreurAnnoncesAdmin();
+        });
+}
+
+// affichage des annonces
+function afficherAnnoncesAdmin(annonces) {
+    const zone = document.getElementById("listeAnnoncesAdmin");
+    const compteur = document.getElementById("nombreAnnonces");
+
+    if (!zone || !compteur) {
+        return;
+    }
+
+    zone.innerHTML = "";
+    compteur.textContent = annonces.length + " annonce(s)";
+
+    if (annonces.length === 0) {
+        zone.innerHTML = `
+            <p class="message-vide-admin">aucune annonce à afficher</p>
+        `;
+        return;
+    }
+
+    annonces.forEach(function(annonce) {
+        const prix = Number(annonce.prix).toLocaleString("fr-FR");
+        const kilometrage = Number(annonce.kilometrage).toLocaleString("fr-FR");
+
+        zone.innerHTML += `
+            <article class="carte-admin-annonce">
+                <img src="${annonce.url_image}" alt="${annonce.nom_marque} ${annonce.modele}">
+
+                <div class="contenu-admin-annonce">
+                    <div class="ligne-haut-annonce">
+                        <span class="badge-statut ${classeStatutAdmin(annonce.statut_annonce)}">
+                            ${formaterStatutAdmin(annonce.statut_annonce)}
+                        </span>
+
+                        <span>${formaterModeVenteAdmin(annonce.mode_vente)}</span>
+                    </div>
+
+                    <h3>${annonce.nom_marque} ${annonce.modele}</h3>
+
+                    <p>${annonce.description}</p>
+
+                    <div class="grille-infos-admin">
+                        <div>
+                            <span>Prix</span>
+                            <strong>${prix} €</strong>
+                        </div>
+
+                        <div>
+                            <span>Année</span>
+                            <strong>${annonce.annee}</strong>
+                        </div>
+
+                        <div>
+                            <span>Kilométrage</span>
+                            <strong>${kilometrage} km</strong>
+                        </div>
+
+                        <div>
+                            <span>Puissance</span>
+                            <strong>${annonce.puissance} ch</strong>
+                        </div>
+
+                        <div>
+                            <span>Vendeur</span>
+                            <strong>${annonce.prenom_vendeur} ${annonce.nom_vendeur}</strong>
+                        </div>
+
+                        <div>
+                            <span>ID voiture</span>
+                            <strong>${annonce.id_voiture}</strong>
+                        </div>
+                    </div>
+
+                    ${genererBoutonsAdmin(annonce)}
+                </div>
+            </article>
+        `;
+    });
+}
+
+// boutons selon statut
+function genererBoutonsAdmin(annonce) {
+    if (annonce.statut_annonce === "en_attente") {
+        return `
+            <div class="actions-admin">
+                <button class="bouton-valider-admin" onclick="validerAnnonce(${annonce.id_voiture})">
+                    Valider
+                </button>
+
+                <button class="bouton-refuser-admin" onclick="refuserAnnonce(${annonce.id_voiture})">
+                    Refuser
+                </button>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="actions-admin">
+            <button class="bouton-supprimer-admin" onclick="supprimerAnnonceAdmin(${annonce.id_voiture})">
+                Supprimer
+            </button>
+        </div>
+    `;
+}
+
+// filtrage admin
+function filtrerAdmin(filtre) {
+    filtreActuelAdmin = filtre;
+
+    const boutons = document.querySelectorAll(".filtre-admin");
+
+    boutons.forEach(function(bouton) {
+        bouton.classList.remove("actif");
+    });
+
+    event.target.classList.add("actif");
+
+    if (filtre === "toutes") {
+        afficherAnnoncesAdmin(toutesLesAnnoncesAdmin);
+        return;
+    }
+
+    const annoncesFiltrees = toutesLesAnnoncesAdmin.filter(function(annonce) {
+        return annonce.statut_annonce === filtre;
+    });
+
+    afficherAnnoncesAdmin(annoncesFiltrees);
+}
+
+// valider une annonce
+function validerAnnonce(idVoiture) {
+    const donnees = new FormData();
+    donnees.append("id_voiture", idVoiture);
+
+    fetch("../backend/valider_annonce.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                chargerToutesAnnoncesAdmin();
+                chargerEncheresTermineesAdmin();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert("erreur lors de la validation");
+        });
+}
+
+// refuser une annonce
+function refuserAnnonce(idVoiture) {
+    const donnees = new FormData();
+    donnees.append("id_voiture", idVoiture);
+
+    fetch("../backend/refuser_annonce.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                chargerToutesAnnoncesAdmin();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert("erreur lors du refus");
+        });
+}
+
+// supprimer une annonce admin
+function supprimerAnnonceAdmin(idVoiture) {
+    if (!confirm("supprimer cette annonce ?")) {
+        return;
+    }
+
+    const donnees = new FormData();
+    donnees.append("id_voiture", idVoiture);
+
+    fetch("../backend/supprimer_annonce_admin.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                chargerToutesAnnoncesAdmin();
+                chargerEncheresTermineesAdmin();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert(resultat.message || "erreur lors de la suppression");
+        });
+}
+
+// erreur affichage annonces
+function afficherErreurAnnoncesAdmin() {
+    const zone = document.getElementById("listeAnnoncesAdmin");
+    const compteur = document.getElementById("nombreAnnonces");
+
+    if (compteur) {
+        compteur.textContent = "erreur";
+    }
+
+    if (zone) {
+        zone.innerHTML = `
+            <p class="message-vide-admin">impossible de charger les annonces</p>
+        `;
+    }
+}
+
+// statut annonce
+function classeStatutAdmin(statut) {
+    if (statut === "validee") {
+        return "statut-validee";
+    }
+
+    if (statut === "refusee") {
+        return "statut-refusee";
+    }
+
+    if (statut === "vendue") {
+        return "statut-vendue";
+    }
+
+    return "statut-attente";
+}
+
+// texte statut
+function formaterStatutAdmin(statut) {
+    if (statut === "validee") {
+        return "validée";
+    }
+
+    if (statut === "refusee") {
+        return "refusée";
+    }
+
+    if (statut === "vendue") {
+        return "vendue";
+    }
+
+    if (statut === "en_attente") {
+        return "en attente";
+    }
+
+    return statut;
+}
+
+// mode vente
+function formaterModeVenteAdmin(mode) {
+    if (mode === "achat_immediat") {
+        return "achat immédiat";
+    }
+
+    if (mode === "enchere") {
+        return "enchère";
+    }
+
+    if (mode === "negociation") {
+        return "négociation";
+    }
+
+    return mode;
+}
+
+// charger les encheres terminees
+function chargerEncheresTermineesAdmin() {
+    const zone = document.getElementById("listeEncheresAdmin");
+    const compteur = document.getElementById("nombreEncheresAdmin");
+
+    if (!zone || !compteur) {
+        return;
+    }
+
+    fetch("../backend/afficher_encheres_terminees_admin.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.succes === true) {
+                afficherEncheresTermineesAdmin(donnees.encheres);
+            } else {
+                compteur.textContent = "erreur";
+                zone.innerHTML = `
+                    <p class="message-vide-admin">${donnees.message}</p>
+                `;
+            }
+        })
+        .catch(function() {
+            compteur.textContent = "erreur";
+            zone.innerHTML = `
+                <p class="message-vide-admin">impossible de charger les enchères</p>
+            `;
+        });
+}
+
+// afficher les encheres terminees
+function afficherEncheresTermineesAdmin(encheres) {
+    const zone = document.getElementById("listeEncheresAdmin");
+    const compteur = document.getElementById("nombreEncheresAdmin");
+
+    if (!zone || !compteur) {
+        return;
+    }
+
+    zone.innerHTML = "";
+    compteur.textContent = encheres.length + " enchère(s)";
+
+    if (encheres.length === 0) {
+        zone.innerHTML = `
+            <p class="message-vide-admin">aucune enchère terminée à confirmer</p>
+        `;
+        return;
+    }
+
+    encheres.forEach(function(enchere) {
+        const prixActuel = Number(enchere.prix_actuel).toLocaleString("fr-FR");
+
+        let acheteur = "aucun gagnant";
+
+        if (enchere.prenom_acheteur && enchere.nom_acheteur) {
+            acheteur = enchere.prenom_acheteur + " " + enchere.nom_acheteur;
+        }
+
+        zone.innerHTML += `
+            <article class="carte-enchere-admin">
+                <img src="${enchere.url_image}" alt="${enchere.nom_marque} ${enchere.modele}">
+
+                <div>
+                    <span class="badge-statut statut-attente">à confirmer</span>
+
+                    <h3>${enchere.nom_marque} ${enchere.modele}</h3>
+
+                    <p>Prix final : <strong>${prixActuel} €</strong></p>
+                    <p>Acheteur gagnant : ${acheteur}</p>
+                    <p>Vendeur : ${enchere.prenom_vendeur} ${enchere.nom_vendeur}</p>
+                    <p>ID voiture : ${enchere.id_voiture}</p>
+
+                    <button onclick="confirmerVenteEnchere(${enchere.id_enchere})">
+                        Confirmer la vente
+                    </button>
+                </div>
+            </article>
+        `;
+    });
+}
+
+// confirmer vente enchere
+function confirmerVenteEnchere(idEnchere) {
+    if (!confirm("confirmer cette vente aux enchères ?")) {
+        return;
+    }
+
+    const donnees = new FormData();
+    donnees.append("id_enchere", idEnchere);
+
+    fetch("../backend/confirmer_vente_enchere.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                alert("vente confirmée");
+
+                chargerEncheresTermineesAdmin();
+                chargerToutesAnnoncesAdmin();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert("erreur lors de la confirmation");
+        });
+}
+
+// chargement des utilisateurs admin
+function chargerUtilisateursAdmin() {
+    const zone = document.getElementById("listeUtilisateursAdmin");
+    const compteur = document.getElementById("nombreUtilisateursAdmin");
+
+    if (!zone || !compteur) {
+        console.log("zone utilisateurs admin introuvable");
+        return;
+    }
+
+    zone.innerHTML = `
+        <p class="message-admin-vide">chargement des utilisateurs...</p>
+    `;
+
+    compteur.textContent = "chargement...";
+
+    fetch("../backend/afficher_utilisateurs_admin.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            console.log("utilisateurs admin :", donnees);
+
+            if (donnees.succes === true) {
+                afficherUtilisateursAdmin(donnees.utilisateurs);
+            } else {
+                compteur.textContent = "erreur";
+
+                zone.innerHTML = `
+                    <p class="message-admin-vide">
+                        erreur : ${donnees.message}
+                    </p>
+                `;
+            }
+        })
+        .catch(function(erreur) {
+            console.log("erreur utilisateurs admin :", erreur);
+
+            compteur.textContent = "erreur";
+
+            zone.innerHTML = `
+                <p class="message-admin-vide">
+                    impossible de charger les utilisateurs
+                </p>
+            `;
+        });
+}
+
+// affichage des utilisateurs admin
+function afficherUtilisateursAdmin(utilisateurs) {
+    const zone = document.getElementById("listeUtilisateursAdmin");
+    const compteur = document.getElementById("nombreUtilisateursAdmin");
+
+    if (!zone || !compteur) {
+        return;
+    }
+
+    zone.innerHTML = "";
+    compteur.textContent = utilisateurs.length + " utilisateur(s)";
+
+    if (utilisateurs.length === 0) {
+        zone.innerHTML = `
+            <p class="message-admin-vide">aucun utilisateur à afficher</p>
+        `;
+        return;
+    }
+
+    utilisateurs.forEach(function(utilisateur) {
+        const estBanni = utilisateur.statut_compte === "banni";
+
+        let adminBan = "administrateur";
+
+        if (utilisateur.prenom_admin || utilisateur.nom_admin) {
+            adminBan = `${utilisateur.prenom_admin || ""} ${utilisateur.nom_admin || ""}`.trim();
+        }
+
+        let infosBan = "";
+
+        if (estBanni) {
+            infosBan = `
+                <div class="infos-ban-admin">
+                    <p><strong>Banni par :</strong> ${adminBan}</p>
+                    <p><strong>Jusqu'au :</strong> ${utilisateur.date_fin_ban}</p>
+                    <p><strong>Motif :</strong> ${utilisateur.motif_ban}</p>
+                </div>
+            `;
+        }
+
+        const nomComplet = `${utilisateur.prenom || ""} ${utilisateur.nom || ""}`.trim();
+
+        zone.innerHTML += `
+            <article class="carte-utilisateur-admin ${estBanni ? "utilisateur-banni" : ""}">
+                <div>
+                    <span class="badge-role-admin">${utilisateur.nom_role}</span>
+
+                    <h3>${nomComplet}</h3>
+
+                    <p>${utilisateur.email}</p>
+
+                    <span class="badge-compte ${estBanni ? "badge-banni" : "badge-actif"}">
+                        ${estBanni ? "banni" : "actif"}
+                    </span>
+
+                    ${infosBan}
+                </div>
+
+                <div class="actions-utilisateur-admin">
+                    ${
+                        estBanni
+                        ? `<button class="bouton-deban-admin" onclick="debannirUtilisateur(${utilisateur.id_utilisateur})">Débannir</button>`
+                        : `<button class="bouton-ban-admin" onclick="ouvrirBanUtilisateur(${utilisateur.id_utilisateur}, '${nomComplet.replace(/'/g, "\\'")}')">Bannir</button>`
+                    }
+                </div>
+            </article>
+        `;
+    });
+}
+
+// ouverture formulaire ban
+function ouvrirBanUtilisateur(idUtilisateur, nomUtilisateur) {
+    const duree = prompt(
+        "Durée du ban en heures pour " + nomUtilisateur + "\n\nExemples :\n1 = 1 heure\n24 = 1 jour\n168 = 7 jours\n720 = 30 jours"
+    );
+
+    if (duree === null || duree.trim() === "" || Number(duree) <= 0) {
+        return;
+    }
+
+    const motif = prompt("Motif du bannissement");
+
+    if (motif === null || motif.trim() === "") {
+        alert("le motif est obligatoire");
+        return;
+    }
+
+    bannirUtilisateur(idUtilisateur, duree, motif);
+}
+
+// bannir utilisateur
+function bannirUtilisateur(idUtilisateur, duree, motif) {
+    const donnees = new FormData();
+
+    donnees.append("id_utilisateur", idUtilisateur);
+    donnees.append("duree_ban", duree);
+    donnees.append("motif_ban", motif);
+
+    fetch("../backend/bannir_utilisateur.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            console.log("ban utilisateur :", resultat);
+
+            if (resultat.succes === true) {
+                alert("utilisateur banni jusqu'au " + resultat.date_fin_ban);
+                chargerUtilisateursAdmin();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function(erreur) {
+            console.log("erreur ban :", erreur);
+            alert("erreur lors du bannissement");
+        });
+}
+
+// debannir utilisateur
+function debannirUtilisateur(idUtilisateur) {
+    if (!confirm("débannir cet utilisateur ?")) {
+        return;
+    }
+
+    const donnees = new FormData();
+    donnees.append("id_utilisateur", idUtilisateur);
+
+    fetch("../backend/debannir_utilisateur.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            console.log("deban utilisateur :", resultat);
+
+            if (resultat.succes === true) {
+                chargerUtilisateursAdmin();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function(erreur) {
+            console.log("erreur deban :", erreur);
+            alert("erreur lors du débannissement");
+        });
+}
