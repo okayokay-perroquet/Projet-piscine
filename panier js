@@ -1,1 +1,356 @@
+let lignesPanierGlobal = [];
+let sousTotalGlobal = 0;
+let fraisMiseRelationGlobal = 0;
+let tvaFraisGlobal = 0;
+let totalTtcGlobal = 0;
 
+const TAUX_FRAIS_MISE_RELATION = 0.10;
+const TAUX_TVA = 0.20;
+
+document.addEventListener("DOMContentLoaded", function() {
+    chargerPanier();
+
+    const boutonValider = document.getElementById("boutonValiderCommande");
+
+    if (boutonValider) {
+        boutonValider.addEventListener("click", function() {
+            validerCommande();
+        });
+    }
+
+    preparerChampsPaiement();
+});
+
+// on charge le panier
+function chargerPanier() {
+    fetch("../backend/afficher_panier.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.succes === true) {
+                lignesPanierGlobal = donnees.lignes || [];
+                sousTotalGlobal = Number(donnees.total) || 0;
+
+                calculerTotaux();
+                afficherPanier(lignesPanierGlobal);
+                afficherRecapitulatif();
+            } else {
+                afficherErreurPanier();
+            }
+        })
+        .catch(function() {
+            afficherErreurPanier();
+        });
+}
+
+// calcul des frais
+function calculerTotaux() {
+    fraisMiseRelationGlobal = sousTotalGlobal * TAUX_FRAIS_MISE_RELATION;
+    tvaFraisGlobal = fraisMiseRelationGlobal * TAUX_TVA;
+    totalTtcGlobal = sousTotalGlobal + fraisMiseRelationGlobal + tvaFraisGlobal;
+}
+
+// format prix avec centimes
+function formaterPrix(montant) {
+    return Number(montant).toLocaleString("fr-FR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }) + " €";
+}
+
+// format prix simple
+function formaterPrixSimple(montant) {
+    return Number(montant).toLocaleString("fr-FR") + " €";
+}
+
+// affiche le recapitulatif
+function afficherRecapitulatif() {
+    const recapSousTotal = document.getElementById("recapSousTotal");
+    const recapFrais = document.getElementById("recapFrais");
+    const recapTva = document.getElementById("recapTva");
+    const totalPanier = document.getElementById("totalPanier");
+
+    if (recapSousTotal) {
+        recapSousTotal.textContent = formaterPrix(sousTotalGlobal);
+    }
+
+    if (recapFrais) {
+        recapFrais.textContent = formaterPrix(fraisMiseRelationGlobal);
+    }
+
+    if (recapTva) {
+        recapTva.textContent = formaterPrix(tvaFraisGlobal);
+    }
+
+    if (totalPanier) {
+        totalPanier.textContent = formaterPrix(totalTtcGlobal);
+    }
+}
+
+// affiche les voitures du panier
+function afficherPanier(lignes) {
+    const zone = document.getElementById("listePanier");
+    const compteur = document.getElementById("nombrePanier");
+    const boutonValider = document.getElementById("boutonValiderCommande");
+
+    if (!zone || !compteur) {
+        return;
+    }
+
+    zone.innerHTML = "";
+    compteur.textContent = lignes.length + " véhicule(s)";
+
+    if (lignes.length === 0) {
+        zone.innerHTML = `
+            <p class="message-panier">votre panier est vide</p>
+        `;
+
+        if (boutonValider) {
+            boutonValider.disabled = true;
+        }
+
+        return;
+    }
+
+    if (boutonValider) {
+        boutonValider.disabled = false;
+    }
+
+    lignes.forEach(function(ligne) {
+        const prixFormate = formaterPrixSimple(ligne.prix_final);
+        const kilometrageFormate = Number(ligne.kilometrage).toLocaleString("fr-FR");
+
+        zone.innerHTML += `
+            <article class="carte-panier-premium">
+                <img src="${ligne.url_image}" alt="${ligne.nom_marque} ${ligne.modele}">
+
+                <div class="contenu-panier-premium">
+                    <div>
+                        <span class="badge-occasion">véhicule d’occasion</span>
+
+                        <h3>${ligne.nom_marque} ${ligne.modele}</h3>
+
+                        <p class="infos-rapides-panier">
+                            ${ligne.annee} • ${kilometrageFormate} km • ${ligne.puissance} ch
+                        </p>
+
+                        <span class="badge-achat">achat immédiat</span>
+                    </div>
+
+                    <div class="prix-ligne-panier">
+                        ${prixFormate}
+                    </div>
+
+                    <button class="bouton-retirer-panier" onclick="supprimerLignePanier(${ligne.id_ligne_panier})">
+                        ×
+                    </button>
+                </div>
+            </article>
+        `;
+    });
+}
+
+// supprimer une ligne du panier
+function supprimerLignePanier(idLignePanier) {
+    const donnees = new FormData();
+    donnees.append("id_ligne_panier", idLignePanier);
+
+    fetch("../backend/supprimer_ligne_panier.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                chargerPanier();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert("erreur lors de la suppression");
+        });
+}
+
+// prepare les champs bancaires
+function preparerChampsPaiement() {
+    const numeroCarte = document.getElementById("numeroCarte");
+    const expirationCarte = document.getElementById("expirationCarte");
+    const cvvCarte = document.getElementById("cvvCarte");
+
+    if (numeroCarte) {
+        numeroCarte.addEventListener("input", function() {
+            let valeur = numeroCarte.value.replace(/\D/g, "").substring(0, 16);
+            valeur = valeur.replace(/(.{4})/g, "$1 ").trim();
+            numeroCarte.value = valeur;
+        });
+    }
+
+    if (expirationCarte) {
+        expirationCarte.addEventListener("input", function() {
+            let valeur = expirationCarte.value.replace(/\D/g, "").substring(0, 4);
+
+            if (valeur.length >= 3) {
+                valeur = valeur.substring(0, 2) + "/" + valeur.substring(2);
+            }
+
+            expirationCarte.value = valeur;
+        });
+    }
+
+    if (cvvCarte) {
+        cvvCarte.addEventListener("input", function() {
+            cvvCarte.value = cvvCarte.value.replace(/\D/g, "").substring(0, 3);
+        });
+    }
+}
+
+// verification formulaire
+function verifierFormulaireCommande() {
+    const champsObligatoires = [
+        "prenomAcheteur",
+        "nomAcheteur",
+        "emailAcheteur",
+        "telephoneAcheteur",
+        "adresseAcheteur",
+        "codePostalAcheteur",
+        "villeAcheteur",
+        "paysAcheteur",
+        "nomCarte",
+        "numeroCarte",
+        "expirationCarte",
+        "cvvCarte"
+    ];
+
+    for (let i = 0; i < champsObligatoires.length; i++) {
+        const champ = document.getElementById(champsObligatoires[i]);
+
+        if (!champ || champ.value.trim() === "") {
+            alert("merci de remplir tous les champs obligatoires");
+
+            if (champ) {
+                champ.focus();
+            }
+
+            return false;
+        }
+    }
+
+    const email = document.getElementById("emailAcheteur").value.trim();
+
+    if (!email.includes("@") || !email.includes(".")) {
+        alert("email invalide");
+        document.getElementById("emailAcheteur").focus();
+        return false;
+    }
+
+    const numeroCarte = document.getElementById("numeroCarte").value.replace(/\s/g, "");
+
+    if (numeroCarte.length !== 16) {
+        alert("le numéro de carte doit contenir 16 chiffres");
+        document.getElementById("numeroCarte").focus();
+        return false;
+    }
+
+    const expiration = document.getElementById("expirationCarte").value.trim();
+
+    if (!/^\d{2}\/\d{2}$/.test(expiration)) {
+        alert("la date d'expiration doit être au format MM/AA");
+        document.getElementById("expirationCarte").focus();
+        return false;
+    }
+
+    const cvv = document.getElementById("cvvCarte").value.trim();
+
+    if (!/^\d{3}$/.test(cvv)) {
+        alert("le CVV doit contenir 3 chiffres");
+        document.getElementById("cvvCarte").focus();
+        return false;
+    }
+
+    return true;
+}
+
+// validation commande
+function validerCommande() {
+    if (lignesPanierGlobal.length === 0) {
+        alert("votre panier est vide");
+        return;
+    }
+
+    if (!verifierFormulaireCommande()) {
+        return;
+    }
+
+    if (!confirm("confirmer le paiement simulé et valider cette commande ?")) {
+        return;
+    }
+
+    const donnees = new FormData();
+
+    donnees.append("prenom", document.getElementById("prenomAcheteur").value.trim());
+    donnees.append("nom", document.getElementById("nomAcheteur").value.trim());
+    donnees.append("email", document.getElementById("emailAcheteur").value.trim());
+    donnees.append("telephone", document.getElementById("telephoneAcheteur").value.trim());
+    donnees.append("adresse", document.getElementById("adresseAcheteur").value.trim());
+    donnees.append("code_postal", document.getElementById("codePostalAcheteur").value.trim());
+    donnees.append("ville", document.getElementById("villeAcheteur").value.trim());
+    donnees.append("pays", document.getElementById("paysAcheteur").value.trim());
+
+    donnees.append("nom_carte", document.getElementById("nomCarte").value.trim());
+    donnees.append("numero_carte", document.getElementById("numeroCarte").value.trim());
+    donnees.append("expiration_carte", document.getElementById("expirationCarte").value.trim());
+    donnees.append("cvv_carte", document.getElementById("cvvCarte").value.trim());
+
+    fetch("../backend/valider_commande.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                document.querySelector(".layout-validation").innerHTML = `
+                    <div class="confirmation-commande">
+                        <h2>Commande validée</h2>
+
+                        <p>
+                            Votre paiement simulé a été accepté. Le vendeur a été notifié et le véhicule passe en statut vendu.
+                        </p>
+
+                        <strong>Total TTC : ${formaterPrix(resultat.total_ttc || totalTtcGlobal)}</strong>
+
+                        <a href="catalogue.html" class="bouton bouton-principal">
+                            Retour au catalogue
+                        </a>
+                    </div>
+                `;
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function(erreur) {
+            console.log(erreur);
+            alert("erreur technique pendant la validation");
+        });
+}
+
+// erreur panier
+function afficherErreurPanier() {
+    const compteur = document.getElementById("nombrePanier");
+    const zone = document.getElementById("listePanier");
+
+    if (compteur) {
+        compteur.textContent = "erreur";
+    }
+
+    if (zone) {
+        zone.innerHTML = `
+            <p class="message-panier">impossible de charger le panier</p>
+        `;
+    }
+}
