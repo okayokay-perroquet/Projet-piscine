@@ -1,0 +1,123 @@
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    if (!isset($_SESSION["id_utilisateur"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "utilisateur non connecte"
+        ]);
+        exit;
+    }
+
+    if ($_SESSION["role"] !== "admin") {
+        echo json_encode([
+            "succes" => false,
+            "message" => "acces refuse"
+        ]);
+        exit;
+    }
+
+    if (
+        !isset($_POST["id_utilisateur"]) ||
+        !isset($_POST["duree_ban"]) ||
+        !isset($_POST["motif_ban"])
+    ) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "donnees manquantes"
+        ]);
+        exit;
+    }
+
+    $id_utilisateur = intval($_POST["id_utilisateur"]);
+    $duree_ban = intval($_POST["duree_ban"]);
+    $motif_ban = trim($_POST["motif_ban"]);
+    $id_admin = intval($_SESSION["id_utilisateur"]);
+
+    if ($id_utilisateur <= 0 || $duree_ban <= 0 || $motif_ban === "") {
+        echo json_encode([
+            "succes" => false,
+            "message" => "donnees invalides"
+        ]);
+        exit;
+    }
+
+    // on empeche de bannir un admin
+    $requete_verif = "
+        SELECT u.id_utilisateur, r.nom_role
+        FROM UTILISATEUR u
+        INNER JOIN ROLE r ON u.id_role = r.id_role
+        WHERE u.id_utilisateur = ?
+        LIMIT 1
+    ";
+
+    $preparation_verif = mysqli_prepare($connexion, $requete_verif);
+    mysqli_stmt_bind_param($preparation_verif, "i", $id_utilisateur);
+    mysqli_stmt_execute($preparation_verif);
+
+    $resultat_verif = mysqli_stmt_get_result($preparation_verif);
+
+    if (mysqli_num_rows($resultat_verif) === 0) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "utilisateur introuvable"
+        ]);
+        exit;
+    }
+
+    $utilisateur = mysqli_fetch_assoc($resultat_verif);
+
+    if ($utilisateur["nom_role"] === "admin") {
+        echo json_encode([
+            "succes" => false,
+            "message" => "impossible de bannir un administrateur"
+        ]);
+        exit;
+    }
+
+    // duree en heures
+    $date_fin_ban = date("Y-m-d H:i:s", strtotime("+" . $duree_ban . " hours"));
+
+    $requete = "
+        UPDATE UTILISATEUR
+        SET 
+            statut_compte = 'banni',
+            date_fin_ban = ?,
+            motif_ban = ?,
+            banni_par = ?
+        WHERE id_utilisateur = ?
+    ";
+
+    $preparation = mysqli_prepare($connexion, $requete);
+    mysqli_stmt_bind_param(
+        $preparation,
+        "ssii",
+        $date_fin_ban,
+        $motif_ban,
+        $id_admin,
+        $id_utilisateur
+    );
+    mysqli_stmt_execute($preparation);
+
+    echo json_encode([
+        "succes" => true,
+        "message" => "utilisateur banni",
+        "date_fin_ban" => $date_fin_ban
+    ]);
+    exit;
+
+} catch (Throwable $erreur) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur ban : " . $erreur->getMessage()
+    ]);
+    exit;
+}
+?>
