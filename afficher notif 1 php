@@ -1,0 +1,59 @@
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    if (!isset($_SESSION["id_utilisateur"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "utilisateur non connecte"
+        ]);
+        exit;
+    }
+
+    $id_utilisateur = intval($_SESSION["id_utilisateur"]);
+
+    $requete = "
+        SELECT 
+            id_notification,
+            message,
+            type_notification,
+            lu,
+            date_notification,
+            id_utilisateur
+        FROM NOTIFICATION
+        WHERE id_utilisateur = ?
+        ORDER BY lu ASC, date_notification DESC
+    ";
+
+    $preparation = mysqli_prepare($connexion, $requete);
+    mysqli_stmt_bind_param($preparation, "i", $id_utilisateur);
+    mysqli_stmt_execute($preparation);
+
+    $resultat = mysqli_stmt_get_result($preparation);
+
+    $notifications = [];
+
+    while ($notification = mysqli_fetch_assoc($resultat)) {
+        $notifications[] = $notification;
+    }
+
+    echo json_encode([
+        "succes" => true,
+        "notifications" => $notifications
+    ]);
+    exit;
+
+} catch (Throwable $erreur) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur notifications : " . $erreur->getMessage()
+    ]);
+    exit;
+}
+?>
