@@ -1,0 +1,19 @@
+<?php
+// infos de connexion mamp
+$serveur = "localhost";
+$utilisateur = "root";
+$mot_de_passe = "root";
+$nom_base = "mercato_nova_prestige";
+$port = 8889;
+
+// connexion a la base
+$connexion = mysqli_connect($serveur, $utilisateur, $mot_de_passe, $nom_base, $port);
+
+// si la connexion echoue
+if (!$connexion) {
+    die("erreur de connexion a la base de donnees : " . mysqli_connect_error());
+}
+
+// encodage pour les accents
+mysqli_set_charset($connexion, "utf8mb4");
+?>
