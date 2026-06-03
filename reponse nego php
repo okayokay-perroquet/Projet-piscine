@@ -1,1 +1,138 @@
 
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+// on verifie la connexion
+if (!isset($_SESSION["id_utilisateur"])) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "utilisateur non connecte"
+    ]);
+    exit;
+}
+
+// seul vendeur
+if ($_SESSION["role"] !== "vendeur") {
+    echo json_encode([
+        "succes" => false,
+        "message" => "acces refuse"
+    ]);
+    exit;
+}
+
+// on verifie les donnees
+if (!isset($_POST["id_negociation"]) || !isset($_POST["action"])) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "donnees manquantes"
+    ]);
+    exit;
+}
+
+$id_vendeur = $_SESSION["id_utilisateur"];
+$id_negociation = intval($_POST["id_negociation"]);
+$action = $_POST["action"];
+$reponse_vendeur = isset($_POST["reponse_vendeur"]) ? trim($_POST["reponse_vendeur"]) : "";
+
+// on choisit le nouveau statut
+if ($action === "accepter") {
+    $nouveau_statut = "acceptee";
+    $message_reponse = "votre offre a ete acceptee par le vendeur";
+} elseif ($action === "refuser") {
+    $nouveau_statut = "refusee";
+    $message_reponse = "votre offre a ete refusee par le vendeur";
+} elseif ($action === "contre_proposer") {
+    $nouveau_statut = "contre_proposition";
+    $message_reponse = "le vendeur vous a fait une contre-proposition : " . $reponse_vendeur;
+} else {
+    echo json_encode([
+        "succes" => false,
+        "message" => "action invalide"
+    ]);
+    exit;
+}
+
+// on recupere la negociation
+$requete_infos = "
+    SELECT 
+        n.id_negociation,
+        n.id_acheteur,
+        n.id_vendeur,
+        v.modele,
+        m.nom_marque
+    FROM NEGOCIATION n
+    INNER JOIN VOITURE v ON n.id_voiture = v.id_voiture
+    INNER JOIN MARQUE m ON v.id_marque = m.id_marque
+    WHERE n.id_negociation = ?
+    AND n.id_vendeur = ?
+    LIMIT 1
+";
+
+$preparation_infos = mysqli_prepare($connexion, $requete_infos);
+mysqli_stmt_bind_param($preparation_infos, "ii", $id_negociation, $id_vendeur);
+mysqli_stmt_execute($preparation_infos);
+
+$resultat_infos = mysqli_stmt_get_result($preparation_infos);
+
+if (mysqli_num_rows($resultat_infos) === 0) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "negociation introuvable"
+    ]);
+    exit;
+}
+
+$negociation = mysqli_fetch_assoc($resultat_infos);
+$id_acheteur = intval($negociation["id_acheteur"]);
+
+// on met a jour la negociation
+$requete_update = "
+    UPDATE NEGOCIATION
+    SET 
+        statut_negociation = ?,
+        reponse_vendeur = ?,
+        date_reponse = NOW()
+    WHERE id_negociation = ?
+    AND id_vendeur = ?
+";
+
+$preparation_update = mysqli_prepare($connexion, $requete_update);
+mysqli_stmt_bind_param(
+    $preparation_update,
+    "ssii",
+    $nouveau_statut,
+    $reponse_vendeur,
+    $id_negociation,
+    $id_vendeur
+);
+
+if (!mysqli_stmt_execute($preparation_update)) {
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur reponse negociation"
+    ]);
+    exit;
+}
+
+// notification acheteur
+$message = $message_reponse . " sur " . $negociation["nom_marque"] . " " . $negociation["modele"];
+$type_notification = "negociation_mise_a_jour";
+
+$requete_notification = "
+    INSERT INTO NOTIFICATION (message, type_notification, lu, id_utilisateur)
+    VALUES (?, ?, FALSE, ?)
+";
+
+$preparation_notification = mysqli_prepare($connexion, $requete_notification);
+mysqli_stmt_bind_param($preparation_notification, "ssi", $message, $type_notification, $id_acheteur);
+mysqli_stmt_execute($preparation_notification);
+
+echo json_encode([
+    "succes" => true,
+    "message" => "negociation mise a jour"
+]);
+?>
