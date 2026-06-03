@@ -1,1 +1,732 @@
 
+/* page fiche voiture */
+.page-fiche {
+    min-height: 100vh;
+    padding: 130px 7% 80px;
+    background:
+        radial-gradient(circle at top right, rgba(201, 164, 92, 0.10), transparent 35%),
+        #08090b;
+}
+
+/* bloc principal */
+.fiche-voiture {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 42px;
+    align-items: start;
+}
+
+/* image principale */
+.image-fiche {
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.25);
+    border-radius: 28px;
+    overflow: hidden;
+    min-height: 520px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+
+.image-fiche img {
+    width: 100%;
+    height: 100%;
+    min-height: 520px;
+    object-fit: cover;
+    display: block;
+}
+
+/* contenu a droite */
+.contenu-fiche {
+    background: linear-gradient(145deg, #15171b, #0e1014);
+    border: 1px solid rgba(201, 164, 92, 0.24);
+    border-radius: 28px;
+    padding: 34px;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+}
+
+.contenu-fiche h1 {
+    font-size: 42px;
+    line-height: 1.1;
+    margin-bottom: 18px;
+}
+
+.description-courte {
+    color: #a7aab3;
+    line-height: 1.7;
+    margin-bottom: 24px;
+}
+
+/* prix */
+.prix-fiche {
+    font-size: 34px;
+    font-weight: bold;
+    color: #c9a45c;
+    margin-bottom: 26px;
+}
+
+/* boutons */
+.actions-fiche {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+}
+
+/* blocs infos */
+.bloc-infos,
+.bloc-vendeur {
+    margin-top: 28px;
+    padding-top: 26px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bloc-infos h2,
+.bloc-vendeur h2 {
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+/* grille caracteristiques */
+.grille-infos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.grille-infos div {
+    background: #08090b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.grille-infos span {
+    display: block;
+    color: #777b85;
+    font-size: 13px;
+    margin-bottom: 7px;
+}
+
+.grille-infos strong {
+    color: #f5f3ef;
+    font-size: 15px;
+    text-transform: capitalize;
+}
+
+/* vendeur */
+.bloc-vendeur p {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.bloc-vendeur span {
+    color: #a7aab3;
+}
+
+/* message erreur */
+.message-fiche {
+    grid-column: 1 / -1;
+    background: #15171b;
+    border: 1px solid rgba(201, 164, 92, 0.25);
+    border-radius: 24px;
+    padding: 45px;
+    text-align: center;
+}
+
+.message-fiche h1 {
+    font-size: 38px;
+    margin-bottom: 14px;
+}
+
+.message-fiche p {
+    color: #a7aab3;
+    margin-bottom: 26px;
+}
+
+/* adaptation */
+@media screen and (max-width: 1050px) {
+    .fiche-voiture {
+        grid-template-columns: 1fr;
+    }
+
+    .image-fiche,
+    .image-fiche img {
+        min-height: 380px;
+    }
+}
+
+@media screen and (max-width: 650px) {
+    .contenu-fiche h1 {
+        font-size: 32px;
+    }
+
+    .grille-infos {
+        grid-template-columns: 1fr;
+    }
+
+    .prix-fiche {
+        font-size: 28px;
+    }
+}
+
+/* voiture vendue sur la fiche */
+.fiche-vendue {
+    filter: grayscale(1);
+    opacity: 0.55;
+    position: relative;
+}
+
+.fiche-vendue::after {
+    content: "VENDUE";
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: rgba(255, 255, 255, 0.16);
+    color: #f5f3ef;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.bouton-vendu {
+    background: #555;
+    color: #ddd;
+    border: none;
+    cursor: not-allowed;
+}
+
+/* formulaire negociation sur la fiche */
+.formulaire-negociation-fiche {
+    margin: 26px 0;
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.24);
+    border-radius: 22px;
+    padding: 24px;
+}
+
+.formulaire-negociation-fiche h2 {
+    margin-bottom: 18px;
+}
+
+.formulaire-negociation-fiche label {
+    display: block;
+    margin: 16px 0 8px;
+    color: #c9a45c;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 13px;
+}
+
+.formulaire-negociation-fiche input,
+.formulaire-negociation-fiche textarea {
+    width: 100%;
+    background: #08090b;
+    color: #f5f3ef;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 14px;
+    outline: none;
+}
+
+.formulaire-negociation-fiche button {
+    margin-top: 18px;
+    border: none;
+    cursor: pointer;
+}
+
+.message-negociation-ok {
+    margin: 24px 0;
+    padding: 18px;
+    border-radius: 16px;
+    background: rgba(54, 179, 126, 0.12);
+    color: #58d68d;
+    border: 1px solid rgba(54, 179, 126, 0.28);
+}
+
+/* bloc enchere fiche voiture */
+.bloc-enchere-fiche {
+    margin: 28px 0;
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.25);
+    border-radius: 24px;
+    padding: 26px;
+}
+
+.haut-enchere-fiche {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.haut-enchere-fiche h2 {
+    font-size: 28px;
+}
+
+.badge-enchere {
+    padding: 8px 13px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.enchere-active {
+    background: rgba(54, 179, 126, 0.14);
+    color: #58d68d;
+}
+
+.enchere-terminee {
+    background: rgba(255, 80, 80, 0.14);
+    color: #ff7676;
+}
+
+.enchere-confirmee {
+    background: rgba(201, 164, 92, 0.14);
+    color: #c9a45c;
+}
+
+.grille-enchere-fiche {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.grille-enchere-fiche div {
+    background: #08090b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.grille-enchere-fiche span {
+    display: block;
+    color: #a7aab3;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.grille-enchere-fiche strong {
+    color: #f5f3ef;
+    font-size: 19px;
+}
+
+#minuteurEnchere {
+    color: #c9a45c;
+}
+
+.formulaire-enchere-fiche {
+    display: grid;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.formulaire-enchere-fiche label {
+    color: #c9a45c;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 13px;
+}
+
+.formulaire-enchere-fiche input {
+    width: 100%;
+    background: #08090b;
+    color: #f5f3ef;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 14px;
+    outline: none;
+}
+
+.formulaire-enchere-fiche button {
+    border: none;
+    cursor: pointer;
+}
+
+.info-enchere {
+    color: #a7aab3;
+    font-size: 14px;
+    margin-top: 16px;
+    line-height: 1.6;
+}
+
+.message-enchere-ok {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(54, 179, 126, 0.12);
+    color: #58d68d;
+    border: 1px solid rgba(54, 179, 126, 0.28);
+}
+
+.message-enchere-terminee {
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(255, 80, 80, 0.10);
+    color: #ff7676;
+    border: 1px solid rgba(255, 80, 80, 0.25);
+}
+
+@media screen and (max-width: 700px) {
+    .grille-enchere-fiche {
+        grid-template-columns: 1fr;
+    }
+
+    .haut-enchere-fiche {
+        flex-direction: column;
+    }
+}
+
+.bloc-galerie-voiture {
+    width: 100%;
+}
+
+.image-principale-wrapper {
+    position: relative;
+    width: 100%;
+    height: 520px;
+    background: #0a0a0a;
+    border: 1px solid rgba(201, 160, 74, 0.18);
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-principale-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.compteur-images {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 3;
+    background: rgba(0, 0, 0, 0.75);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.btn-galerie {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.75);
+    color: #ffffff;
+    font-size: 28px;
+    line-height: 1;
+    transition: 0.25s ease;
+}
+
+.btn-galerie:hover {
+    background: rgba(201, 160, 74, 0.9);
+    color: #000000;
+}
+
+.btn-galerie-gauche {
+    left: 16px;
+}
+
+.btn-galerie-droite {
+    right: 16px;
+}
+
+.miniatures-wrapper {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-miniatures-scroll {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.75);
+    color: #ffffff;
+    font-size: 24px;
+    flex-shrink: 0;
+    transition: 0.25s ease;
+}
+
+.btn-miniatures-scroll:hover {
+    background: rgba(201, 160, 74, 0.9);
+    color: #000000;
+}
+
+.liste-miniatures {
+    flex: 1;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-bottom: 6px;
+}
+
+.liste-miniatures::-webkit-scrollbar {
+    height: 6px;
+}
+
+.liste-miniatures::-webkit-scrollbar-thumb {
+    background: rgba(201, 160, 74, 0.45);
+    border-radius: 10px;
+}
+
+.miniature-item {
+    min-width: 120px;
+    width: 120px;
+    height: 78px;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: 0.25s ease;
+    background: #111111;
+    flex-shrink: 0;
+}
+
+.miniature-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.miniature-item:hover {
+    border-color: rgba(201, 160, 74, 0.7);
+    transform: translateY(-2px);
+}
+
+.miniature-item.active {
+    border-color: #c9a04a;
+    box-shadow: 0 0 0 1px rgba(201, 160, 74, 0.35);
+}
+
+@media screen and (max-width: 992px) {
+    .image-principale-wrapper {
+        height: 420px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .image-principale-wrapper {
+        height: 320px;
+    }
+
+    .miniature-item {
+        min-width: 96px;
+        width: 96px;
+        height: 68px;
+    }
+
+    .btn-galerie {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+    }
+}
+
+/* correction galerie fiche voiture */
+.image-fiche {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+    min-height: auto;
+    box-shadow: none;
+}
+
+/* on annule l'ancien style global qui agrandissait toutes les images */
+.image-fiche img {
+    min-height: 0;
+}
+
+.galerie-fiche-voiture {
+    width: 100%;
+}
+
+.image-principale-galerie {
+    position: relative;
+    width: 100%;
+    height: 520px;
+    background: #111318;
+    border: 1px solid rgba(201, 164, 92, 0.25);
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+
+.image-principale-galerie img {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: cover;
+    display: block;
+}
+
+.compteur-galerie {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.75);
+    color: #f5f3ef;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.bouton-galerie {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.65);
+    color: #f5f3ef;
+    font-size: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.25s ease;
+}
+
+.bouton-galerie:hover {
+    background: #c9a45c;
+    color: #08090b;
+}
+
+.bouton-galerie-gauche {
+    left: 18px;
+}
+
+.bouton-galerie-droite {
+    right: 18px;
+}
+
+.zone-miniatures-galerie {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bouton-scroll-miniatures {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 164, 92, 0.28);
+    background: rgba(0, 0, 0, 0.65);
+    color: #f5f3ef;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bouton-scroll-miniatures:hover {
+    background: #c9a45c;
+    color: #08090b;
+}
+
+.liste-miniatures-galerie {
+    flex: 1;
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 4px 0 8px;
+}
+
+.liste-miniatures-galerie::-webkit-scrollbar {
+    height: 6px;
+}
+
+.liste-miniatures-galerie::-webkit-scrollbar-thumb {
+    background: rgba(201, 164, 92, 0.45);
+    border-radius: 999px;
+}
+
+.miniature-galerie {
+    min-width: 120px;
+    width: 120px;
+    height: 78px;
+    padding: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    background: #111318;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: 0.25s ease;
+}
+
+.miniature-galerie img {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: cover;
+    display: block;
+}
+
+.miniature-galerie:hover {
+    border-color: rgba(201, 164, 92, 0.7);
+    transform: translateY(-2px);
+}
+
+.miniature-galerie.active {
+    border-color: #c9a45c;
+    box-shadow: 0 0 0 1px rgba(201, 164, 92, 0.35);
+}
+
+/* responsive galerie */
+@media screen and (max-width: 1050px) {
+    .image-principale-galerie {
+        height: 420px;
+    }
+}
+
+@media screen and (max-width: 650px) {
+    .image-principale-galerie {
+        height: 320px;
+    }
+
+    .miniature-galerie {
+        min-width: 95px;
+        width: 95px;
+        height: 65px;
+    }
+
+    .bouton-galerie {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+    }
+}
