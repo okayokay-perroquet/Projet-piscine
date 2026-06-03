@@ -1,0 +1,271 @@
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+function retourErreur($message) {
+    header("Location: ../frontend/espace_vendeur.html?ajout=erreur&details=" . urlencode($message));
+    exit;
+}
+
+try {
+    // on verifie si le vendeur est connecte
+    if (!isset($_SESSION["id_utilisateur"])) {
+        die("vous devez etre connecte pour ajouter une annonce");
+    }
+
+    // on verifie que le compte est vendeur
+    if ($_SESSION["role"] !== "vendeur") {
+        die("seuls les vendeurs peuvent ajouter une annonce");
+    }
+
+    // on recupere l'id du vendeur connecte
+    $id_vendeur = intval($_SESSION["id_utilisateur"]);
+
+    // on recupere les donnees du formulaire
+    $modele = isset($_POST["modele"]) ? trim($_POST["modele"]) : "";
+    $annee = isset($_POST["annee"]) ? intval($_POST["annee"]) : 0;
+    $kilometrage = isset($_POST["kilometrage"]) ? intval($_POST["kilometrage"]) : 0;
+    $puissance = isset($_POST["puissance"]) ? intval($_POST["puissance"]) : 0;
+    $prix = isset($_POST["prix"]) ? floatval($_POST["prix"]) : 0;
+    $carburant = isset($_POST["carburant"]) ? trim($_POST["carburant"]) : "";
+    $transmission = isset($_POST["transmission"]) ? trim($_POST["transmission"]) : "";
+    $couleur_exterieure = isset($_POST["couleur_exterieure"]) ? trim($_POST["couleur_exterieure"]) : "";
+    $couleur_interieure = isset($_POST["couleur_interieure"]) ? trim($_POST["couleur_interieure"]) : "";
+    $etat = isset($_POST["etat"]) ? trim($_POST["etat"]) : "";
+    $mode_vente = isset($_POST["mode_vente"]) ? trim($_POST["mode_vente"]) : "";
+    $description = isset($_POST["description"]) ? trim($_POST["description"]) : "";
+
+    // verification des champs obligatoires
+    if ($modele === "" || $annee <= 0 || $kilometrage < 0 || $prix <= 0 || $description === "") {
+        retourErreur("champs obligatoires manquants");
+    }
+
+    // gestion de la marque
+    if (!isset($_POST["id_marque"])) {
+        retourErreur("marque manquante");
+    }
+
+    $id_marque = null;
+
+    if ($_POST["id_marque"] === "autre") {
+        $marque_personnalisee = isset($_POST["marque_personnalisee"]) ? trim($_POST["marque_personnalisee"]) : "";
+
+        if ($marque_personnalisee === "") {
+            retourErreur("marque personnalisee vide");
+        }
+
+        // on regarde si la marque existe deja
+        $requete_verif_marque = "
+            SELECT id_marque
+            FROM MARQUE
+            WHERE LOWER(nom_marque) = LOWER(?)
+            LIMIT 1
+        ";
+
+        $preparation_verif_marque = mysqli_prepare($connexion, $requete_verif_marque);
+        mysqli_stmt_bind_param($preparation_verif_marque, "s", $marque_personnalisee);
+        mysqli_stmt_execute($preparation_verif_marque);
+
+        $resultat_verif_marque = mysqli_stmt_get_result($preparation_verif_marque);
+
+        if (mysqli_num_rows($resultat_verif_marque) > 0) {
+            $marque = mysqli_fetch_assoc($resultat_verif_marque);
+            $id_marque = intval($marque["id_marque"]);
+        } else {
+            $requete_ajout_marque = "
+                INSERT INTO MARQUE (nom_marque)
+                VALUES (?)
+            ";
+
+            $preparation_ajout_marque = mysqli_prepare($connexion, $requete_ajout_marque);
+            mysqli_stmt_bind_param($preparation_ajout_marque, "s", $marque_personnalisee);
+            mysqli_stmt_execute($preparation_ajout_marque);
+
+            $id_marque = mysqli_insert_id($connexion);
+        }
+    } else {
+        $id_marque = intval($_POST["id_marque"]);
+    }
+
+    if ($id_marque <= 0) {
+        retourErreur("marque invalide");
+    }
+
+    // duree enchere seulement utile si mode vente = enchere
+    $duree_enchere_minutes = null;
+
+    if ($mode_vente === "enchere") {
+        $duree_enchere_minutes = isset($_POST["duree_enchere_minutes"])
+            ? intval($_POST["duree_enchere_minutes"])
+            : 10;
+
+        if ($duree_enchere_minutes <= 0) {
+            $duree_enchere_minutes = 10;
+        }
+    }
+
+    // gestion upload images
+    if (!isset($_FILES["images_voiture"])) {
+        retourErreur("aucune image recue");
+    }
+
+    $nombre_images = count($_FILES["images_voiture"]["name"]);
+
+    if ($nombre_images <= 0) {
+        retourErreur("aucune image selectionnee");
+    }
+
+    if ($nombre_images > 6) {
+        retourErreur("maximum 6 images");
+    }
+
+    $image_principale_index = isset($_POST["image_principale_index"])
+        ? intval($_POST["image_principale_index"])
+        : 0;
+
+    if ($image_principale_index < 0 || $image_principale_index >= $nombre_images) {
+        $image_principale_index = 0;
+    }
+
+    $dossier_upload_physique = __DIR__ . "/../frontend/images/voitures/uploads/";
+    $dossier_upload_bdd = "images/voitures/uploads/";
+
+    if (!is_dir($dossier_upload_physique)) {
+        mkdir($dossier_upload_physique, 0777, true);
+    }
+
+    if (!is_writable($dossier_upload_physique)) {
+        retourErreur("dossier upload non accessible");
+    }
+
+    $extensions_autorisees = ["jpg", "jpeg", "png", "webp"];
+
+    // statut par defaut
+    $statut_annonce = "en_attente";
+
+    mysqli_begin_transaction($connexion);
+
+    // on ajoute la voiture
+    $requete = "
+        INSERT INTO VOITURE (
+            modele,
+            annee,
+            kilometrage,
+            puissance,
+            carburant,
+            transmission,
+            couleur_exterieure,
+            couleur_interieure,
+            etat,
+            prix,
+            description,
+            mode_vente,
+            statut_annonce,
+            duree_enchere_minutes,
+            id_vendeur,
+            id_marque
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ";
+
+    $preparation = mysqli_prepare($connexion, $requete);
+
+    mysqli_stmt_bind_param(
+        $preparation,
+        "siiisssssdsssiii",
+        $modele,
+        $annee,
+        $kilometrage,
+        $puissance,
+        $carburant,
+        $transmission,
+        $couleur_exterieure,
+        $couleur_interieure,
+        $etat,
+        $prix,
+        $description,
+        $mode_vente,
+        $statut_annonce,
+        $duree_enchere_minutes,
+        $id_vendeur,
+        $id_marque
+    );
+
+    mysqli_stmt_execute($preparation);
+
+    $id_voiture = mysqli_insert_id($connexion);
+
+    // on ajoute les images
+    for ($i = 0; $i < $nombre_images; $i++) {
+        if ($_FILES["images_voiture"]["error"][$i] !== UPLOAD_ERR_OK) {
+            throw new Exception("erreur upload image numero " . ($i + 1));
+        }
+
+        $nom_original = $_FILES["images_voiture"]["name"][$i];
+        $tmp_name = $_FILES["images_voiture"]["tmp_name"][$i];
+
+        $extension = strtolower(pathinfo($nom_original, PATHINFO_EXTENSION));
+
+        if (!in_array($extension, $extensions_autorisees)) {
+            throw new Exception("extension non autorisee : " . $extension);
+        }
+
+        $nom_fichier = "voiture_" . $id_voiture . "_" . uniqid() . "_" . $i . "." . $extension;
+
+        $chemin_final_physique = $dossier_upload_physique . $nom_fichier;
+        $chemin_final_bdd = $dossier_upload_bdd . $nom_fichier;
+
+        if (!move_uploaded_file($tmp_name, $chemin_final_physique)) {
+            throw new Exception("impossible de deplacer l'image");
+        }
+
+        $image_principale = ($i === $image_principale_index) ? 1 : 0;
+
+        $requete_image = "
+            INSERT INTO IMAGE_VOITURE (
+                url_image,
+                image_principale,
+                id_voiture
+            )
+            VALUES (?, ?, ?)
+        ";
+
+        $preparation_image = mysqli_prepare($connexion, $requete_image);
+        mysqli_stmt_bind_param(
+            $preparation_image,
+            "sii",
+            $chemin_final_bdd,
+            $image_principale,
+            $id_voiture
+        );
+
+        mysqli_stmt_execute($preparation_image);
+    }
+
+    // notification pour l'admin
+    $message = "une nouvelle annonce est en attente de validation";
+    $type_notification = "annonce_a_valider";
+    $id_admin = 3;
+
+    $requete_notification = "
+        INSERT INTO NOTIFICATION (message, type_notification, lu, id_utilisateur)
+        VALUES (?, ?, FALSE, ?)
+    ";
+
+    $preparation_notification = mysqli_prepare($connexion, $requete_notification);
+    mysqli_stmt_bind_param($preparation_notification, "ssi", $message, $type_notification, $id_admin);
+    mysqli_stmt_execute($preparation_notification);
+
+    mysqli_commit($connexion);
+
+    header("Location: ../frontend/espace_vendeur.html?ajout=ok");
+    exit;
+
+} catch (Throwable $erreur) {
+    mysqli_rollback($connexion);
+    retourErreur($erreur->getMessage());
+}
+?>
