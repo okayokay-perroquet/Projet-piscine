@@ -1,0 +1,436 @@
+// on attend que la page soit chargee
+document.addEventListener("DOMContentLoaded", function() {
+    verifierSessionAcheteur();
+    chargerNegociationsAcheteur();
+    chargerNotificationsAcheteur();
+});
+
+// on verifie si l'utilisateur est connecte
+function verifierSessionAcheteur() {
+    fetch("../backend/session_utilisateur.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.connecte === true) {
+                afficherProfilAcheteur(donnees.utilisateur);
+            } else {
+                afficherNonConnecteAcheteur();
+            }
+        })
+        .catch(function() {
+            afficherNonConnecteAcheteur();
+        });
+}
+
+// on affiche les infos de l'acheteur
+function afficherProfilAcheteur(utilisateur) {
+    const messageBienvenue = document.getElementById("messageBienvenue");
+
+    const carteProfil =
+        document.getElementById("carteProfilAcheteur") ||
+        document.getElementById("carteProfil");
+
+    if (!messageBienvenue || !carteProfil) {
+        return;
+    }
+
+    if (utilisateur.role !== "acheteur") {
+        document.querySelector(".page-acheteur").innerHTML = `
+            <div class="message-session">
+                <h1>Accès refusé</h1>
+                <p>Cet espace est réservé aux acheteurs.</p>
+                <a href="connexion.html" class="bouton bouton-principal">Se connecter</a>
+            </div>
+        `;
+        return;
+    }
+
+    messageBienvenue.textContent = "Bonjour " + utilisateur.prenom;
+
+    carteProfil.innerHTML = `
+        <h2>Mon profil</h2>
+        <p><strong>Nom :</strong> ${utilisateur.prenom} ${utilisateur.nom}</p>
+        <p><strong>Email :</strong> ${utilisateur.email}</p>
+        <p><strong>Rôle :</strong> ${utilisateur.role}</p>
+    `;
+}
+
+// si personne n'est connecte
+function afficherNonConnecteAcheteur() {
+    document.querySelector(".page-acheteur").innerHTML = `
+        <div class="message-session">
+            <h1>Vous n’êtes pas connecté</h1>
+            <p>Connectez-vous pour accéder à votre espace acheteur.</p>
+            <a href="connexion.html" class="bouton bouton-principal">Se connecter</a>
+        </div>
+    `;
+}
+
+// on charge les negociations acheteur
+function chargerNegociationsAcheteur() {
+    fetch("../backend/afficher_negociations_acheteur.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.succes === true) {
+                afficherNegociationsAcheteur(donnees.negociations);
+            }
+        })
+        .catch(function() {
+            const zone = document.getElementById("listeNegociationsAcheteur");
+
+            if (zone) {
+                zone.innerHTML = `
+                    <p class="message-vide-acheteur">
+                        impossible de charger les négociations
+                    </p>
+                `;
+            }
+        });
+}
+
+// on affiche les negociations acheteur
+function afficherNegociationsAcheteur(negociations) {
+    const zone = document.getElementById("listeNegociationsAcheteur");
+    const compteur = document.getElementById("nombreNegociationsAcheteur");
+
+    if (!zone || !compteur) {
+        return;
+    }
+
+    zone.innerHTML = "";
+    compteur.textContent = negociations.length + " négociation(s)";
+
+    if (negociations.length === 0) {
+        zone.innerHTML = `
+            <p class="message-vide-acheteur">
+                vous n’avez encore envoyé aucune offre
+            </p>
+        `;
+        return;
+    }
+
+    negociations.forEach(function(negociation) {
+        const prixPropose = Number(negociation.prix_propose).toLocaleString("fr-FR");
+        const prixInitial = Number(negociation.prix).toLocaleString("fr-FR");
+
+        let zoneReponse = "";
+
+        if (negociation.reponse_vendeur && negociation.reponse_vendeur.trim() !== "") {
+            zoneReponse = `
+                <div class="reponse-vendeur-acheteur">
+                    <strong>Réponse du vendeur</strong>
+                    <p>${negociation.reponse_vendeur}</p>
+                </div>
+            `;
+        }
+
+        zone.innerHTML += `
+            <article class="carte-negociation-acheteur">
+                <img src="${negociation.url_image}" alt="${negociation.nom_marque} ${negociation.modele}">
+
+                <div>
+                    <span class="badge-negociation ${classeStatutNegociation(negociation.statut_negociation)}">
+                        ${formaterStatutNegociation(negociation.statut_negociation)}
+                    </span>
+
+                    <h3>${negociation.nom_marque} ${negociation.modele}</h3>
+
+                    <p>Prix affiché : ${prixInitial} €</p>
+                    <p>Votre offre : <strong>${prixPropose} €</strong></p>
+                    <p>Vendeur : ${negociation.prenom_vendeur} ${negociation.nom_vendeur}</p>
+
+                    ${negociation.message_acheteur ? `<p>Votre message : ${negociation.message_acheteur}</p>` : ""}
+
+                    ${zoneReponse}
+
+                    <div class="actions-negociation-acheteur">
+                        <a href="fiche_voiture.html?id=${negociation.id_voiture}">
+                            Voir la fiche
+                        </a>
+
+                        ${genererActionsNegociationAcheteur(negociation)}
+                    </div>
+                </div>
+            </article>
+        `;
+    });
+}
+
+// on genere les boutons uniquement si le vendeur a fait une contre proposition
+function genererActionsNegociationAcheteur(negociation) {
+    if (negociation.statut_negociation !== "contre_proposition") {
+        return "";
+    }
+
+    return `
+        <button class="bouton-accepter-negociation-acheteur" onclick="accepterContreProposition(${negociation.id_negociation})">
+            Accepter
+        </button>
+
+        <button class="bouton-contre-negociation-acheteur" onclick="contreProposerAcheteur(${negociation.id_negociation})">
+            Refaire une offre
+        </button>
+    `;
+}
+
+// accepter la contre proposition du vendeur
+function accepterContreProposition(idNegociation) {
+    if (!confirm("accepter la contre-proposition du vendeur ?")) {
+        return;
+    }
+
+    const donnees = new FormData();
+    donnees.append("id_negociation", idNegociation);
+    donnees.append("action", "accepter");
+
+    fetch("../backend/repondre_negociation_acheteur.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                chargerNegociationsAcheteur();
+                chargerNotificationsAcheteur();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert("erreur lors de l’acceptation");
+        });
+}
+
+// refaire une offre cote acheteur
+function contreProposerAcheteur(idNegociation) {
+    const nouveauPrix = prompt("entrez votre nouvelle offre");
+
+    if (nouveauPrix === null || nouveauPrix.trim() === "" || Number(nouveauPrix) <= 0) {
+        return;
+    }
+
+    const message = prompt("ajoutez un message au vendeur") || "";
+
+    const donnees = new FormData();
+    donnees.append("id_negociation", idNegociation);
+    donnees.append("action", "contre_proposer");
+    donnees.append("nouveau_prix", nouveauPrix);
+    donnees.append("message_acheteur", message);
+
+    fetch("../backend/repondre_negociation_acheteur.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                chargerNegociationsAcheteur();
+                chargerNotificationsAcheteur();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert("erreur lors de la contre-proposition");
+        });
+}
+
+// on charge les notifications acheteur
+function chargerNotificationsAcheteur() {
+    fetch("../backend/afficher_notifications_utilisateur.php")
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(donnees) {
+            if (donnees.succes === true) {
+                afficherNotificationsAcheteur(donnees.notifications);
+            } else {
+                afficherErreurNotificationsAcheteur();
+            }
+        })
+        .catch(function() {
+            afficherErreurNotificationsAcheteur();
+        });
+}
+
+// on affiche les notifications acheteur avec lu / non lu
+function afficherNotificationsAcheteur(notifications) {
+    const zone = document.getElementById("listeNotificationsAcheteur");
+
+    if (!zone) {
+        return;
+    }
+
+    zone.innerHTML = "";
+
+    if (notifications.length === 0) {
+        zone.innerHTML = `
+            <p class="message-vide-acheteur">
+                aucune notification pour le moment
+            </p>
+        `;
+        return;
+    }
+
+    const notificationsNonLues = notifications.filter(function(notification) {
+        return Number(notification.lu) === 0;
+    });
+
+    zone.innerHTML += `
+        <div class="resume-notifications">
+            <strong>${notificationsNonLues.length}</strong> notification(s) non lue(s)
+        </div>
+    `;
+
+    notifications.forEach(function(notification) {
+        const estLue = Number(notification.lu) === 1;
+
+        let classeNotification = "notification-acheteur notification-non-lue";
+        let texteBouton = "Marquer comme lu";
+        let nouvelEtat = 1;
+
+        if (estLue) {
+            classeNotification = "notification-acheteur notification-lue";
+            texteBouton = "Marquer comme non lu";
+            nouvelEtat = 0;
+        }
+
+        zone.innerHTML += `
+            <div class="${classeNotification}">
+                <div class="haut-notification">
+                    <strong>${formaterTypeNotificationAcheteur(notification.type_notification)}</strong>
+
+                    <span class="badge-notification ${estLue ? "badge-lue" : "badge-non-lue"}">
+                        ${estLue ? "lue" : "non lue"}
+                    </span>
+                </div>
+
+                <p>${notification.message}</p>
+
+                <div class="bas-notification">
+                    <span>${notification.date_notification}</span>
+
+                    <button onclick="modifierEtatNotificationAcheteur(${notification.id_notification}, ${nouvelEtat})">
+                        ${texteBouton}
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// modifier notification acheteur
+function modifierEtatNotificationAcheteur(idNotification, nouvelEtat) {
+    const donnees = new FormData();
+    donnees.append("id_notification", idNotification);
+    donnees.append("lu", nouvelEtat);
+
+    fetch("../backend/modifier_etat_notification.php", {
+        method: "POST",
+        body: donnees
+    })
+        .then(function(reponse) {
+            return reponse.json();
+        })
+        .then(function(resultat) {
+            if (resultat.succes === true) {
+                chargerNotificationsAcheteur();
+            } else {
+                alert(resultat.message);
+            }
+        })
+        .catch(function() {
+            alert("erreur lors de la modification de la notification");
+        });
+}
+
+// erreur notifications acheteur
+function afficherErreurNotificationsAcheteur() {
+    const zone = document.getElementById("listeNotificationsAcheteur");
+
+    if (zone) {
+        zone.innerHTML = `
+            <p class="message-vide-acheteur">
+                impossible de charger les notifications
+            </p>
+        `;
+    }
+}
+
+// classe couleur selon le statut
+function classeStatutNegociation(statut) {
+    if (statut === "acceptee") {
+        return "negociation-acceptee";
+    }
+
+    if (statut === "refusee") {
+        return "negociation-refusee";
+    }
+
+    if (statut === "contre_proposition") {
+        return "negociation-contre";
+    }
+
+    return "negociation-attente";
+}
+
+// texte propre du statut
+function formaterStatutNegociation(statut) {
+    if (statut === "acceptee") {
+        return "acceptée";
+    }
+
+    if (statut === "refusee") {
+        return "refusée";
+    }
+
+    if (statut === "contre_proposition") {
+        return "contre-proposition";
+    }
+
+    return "en attente";
+}
+
+// texte propre des notifications
+function formaterTypeNotificationAcheteur(type) {
+    if (type === "negociation_mise_a_jour") {
+        return "négociation mise à jour";
+    }
+
+    if (type === "negociation_acceptee") {
+        return "négociation acceptée";
+    }
+
+    if (type === "negociation_recue") {
+        return "négociation envoyée";
+    }
+
+    if (type === "voiture_vendue") {
+        return "voiture vendue";
+    }
+
+    if (type === "enchere_expiree") {
+        return "enchère expirée";
+    }
+
+    if (type === "enchere_gagnee") {
+        return "enchère gagnée";
+    }
+
+    if (type === "enchere_depassee") {
+        return "enchère dépassée";
+    }
+
+    if (type === "vente_enchere_confirmee") {
+        return "vente enchère confirmée";
+    }
+
+    return type;
+}
