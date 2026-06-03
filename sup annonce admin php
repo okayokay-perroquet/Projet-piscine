@@ -1,0 +1,158 @@
+<?php
+session_start();
+
+require_once "connexion_bdd.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    if (!isset($_SESSION["id_utilisateur"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "utilisateur non connecte"
+        ]);
+        exit;
+    }
+
+    if ($_SESSION["role"] !== "admin") {
+        echo json_encode([
+            "succes" => false,
+            "message" => "acces refuse"
+        ]);
+        exit;
+    }
+
+    if (!isset($_POST["id_voiture"])) {
+        echo json_encode([
+            "succes" => false,
+            "message" => "id voiture manquant"
+        ]);
+        exit;
+    }
+
+    $id_voiture = intval($_POST["id_voiture"]);
+
+    // on recupere les images pour supprimer les fichiers uploades apres
+    $images_a_supprimer = [];
+
+    $requete_images = "
+        SELECT url_image
+        FROM IMAGE_VOITURE
+        WHERE id_voiture = ?
+    ";
+
+    $preparation_images = mysqli_prepare($connexion, $requete_images);
+    mysqli_stmt_bind_param($preparation_images, "i", $id_voiture);
+    mysqli_stmt_execute($preparation_images);
+
+    $resultat_images = mysqli_stmt_get_result($preparation_images);
+
+    while ($image = mysqli_fetch_assoc($resultat_images)) {
+        $images_a_supprimer[] = $image["url_image"];
+    }
+
+    mysqli_begin_transaction($connexion);
+
+    // on supprime les offres liees aux encheres de cette voiture
+    $requete_offres = "
+        DELETE oe
+        FROM OFFRE_ENCHERE oe
+        INNER JOIN ENCHERE e ON oe.id_enchere = e.id_enchere
+        WHERE e.id_voiture = ?
+    ";
+
+    $preparation_offres = mysqli_prepare($connexion, $requete_offres);
+    mysqli_stmt_bind_param($preparation_offres, "i", $id_voiture);
+    mysqli_stmt_execute($preparation_offres);
+
+    // on supprime les encheres
+    $requete_encheres = "
+        DELETE FROM ENCHERE
+        WHERE id_voiture = ?
+    ";
+
+    $preparation_encheres = mysqli_prepare($connexion, $requete_encheres);
+    mysqli_stmt_bind_param($preparation_encheres, "i", $id_voiture);
+    mysqli_stmt_execute($preparation_encheres);
+
+    // on supprime les negociations
+    $requete_negociations = "
+        DELETE FROM NEGOCIATION
+        WHERE id_voiture = ?
+    ";
+
+    $preparation_negociations = mysqli_prepare($connexion, $requete_negociations);
+    mysqli_stmt_bind_param($preparation_negociations, "i", $id_voiture);
+    mysqli_stmt_execute($preparation_negociations);
+
+    // on supprime les lignes de panier
+    $requete_lignes_panier = "
+        DELETE FROM LIGNE_PANIER
+        WHERE id_voiture = ?
+    ";
+
+    $preparation_lignes_panier = mysqli_prepare($connexion, $requete_lignes_panier);
+    mysqli_stmt_bind_param($preparation_lignes_panier, "i", $id_voiture);
+    mysqli_stmt_execute($preparation_lignes_panier);
+
+    // on supprime les commandes liees a cette voiture
+    $requete_commandes = "
+        DELETE FROM COMMANDE
+        WHERE id_voiture = ?
+    ";
+
+    $preparation_commandes = mysqli_prepare($connexion, $requete_commandes);
+    mysqli_stmt_bind_param($preparation_commandes, "i", $id_voiture);
+    mysqli_stmt_execute($preparation_commandes);
+
+    // on supprime les images en base
+    $requete_delete_images = "
+        DELETE FROM IMAGE_VOITURE
+        WHERE id_voiture = ?
+    ";
+
+    $preparation_delete_images = mysqli_prepare($connexion, $requete_delete_images);
+    mysqli_stmt_bind_param($preparation_delete_images, "i", $id_voiture);
+    mysqli_stmt_execute($preparation_delete_images);
+
+    // enfin on supprime la voiture
+    $requete_voiture = "
+        DELETE FROM VOITURE
+        WHERE id_voiture = ?
+    ";
+
+    $preparation_voiture = mysqli_prepare($connexion, $requete_voiture);
+    mysqli_stmt_bind_param($preparation_voiture, "i", $id_voiture);
+    mysqli_stmt_execute($preparation_voiture);
+
+    mysqli_commit($connexion);
+
+    // on supprime seulement les images uploadées, pas les images de démo du projet
+    foreach ($images_a_supprimer as $url_image) {
+        if (strpos($url_image, "images/voitures/uploads/") !== false) {
+            $chemin_image = __DIR__ . "/../frontend/" . $url_image;
+
+            if (file_exists($chemin_image)) {
+                unlink($chemin_image);
+            }
+        }
+    }
+
+    echo json_encode([
+        "succes" => true,
+        "message" => "annonce supprimee"
+    ]);
+    exit;
+
+} catch (Throwable $erreur) {
+    mysqli_rollback($connexion);
+
+    echo json_encode([
+        "succes" => false,
+        "message" => "erreur suppression : " . $erreur->getMessage()
+    ]);
+    exit;
+}
+?>
